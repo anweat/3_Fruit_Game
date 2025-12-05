@@ -1,0 +1,41 @@
+# Build directories
+build/
+cmake-build-*/
+*.user
+
+# IDE files
+.vscode/
+.vs/
+*.suo
+*.sln
+*.vcxproj*
+
+# Compiled files
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.o
+*.obj
+
+# Qt files
+*.qm
+*.autosave
+ui_*.h
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.log
+*.tmp
+*~
+
+# Test outputs
+Testing/
