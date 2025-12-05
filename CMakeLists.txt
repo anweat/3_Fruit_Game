@@ -44,6 +44,7 @@ set(CORE_SOURCES
 )
 
 set(CORE_HEADERS
+    src/core/FruitTypes.h
     src/core/GameEngine.h
     src/core/MapManager.h
     src/core/MatchDetector.h

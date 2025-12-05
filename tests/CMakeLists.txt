@@ -3,6 +3,12 @@ cmake_minimum_required(VERSION 3.16)
 # 查找Qt Test模块
 find_package(Qt6 REQUIRED COMPONENTS Test)
 
+# 核心源文件 (测试需要链接这些实现)
+set(CORE_SOURCES_FOR_TEST
+    ../src/core/FruitGenerator.cpp
+    ../src/core/MatchDetector.cpp
+)
+
 # 测试源文件
 set(TEST_SOURCES
     test_match_detector.cpp
@@ -16,6 +22,13 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     
     add_executable(${TEST_NAME}
         ${TEST_SOURCE}
+        ${CORE_SOURCES_FOR_TEST}
+    )
+    
+    # 添加包含目录
+    target_include_directories(${TEST_NAME} PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/src/core
     )
     
     target_link_libraries(${TEST_NAME}
