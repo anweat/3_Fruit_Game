@@ -5,6 +5,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QScrollBar>
+#include <QTimer>
 
 /**
  * @brief 构造函数
@@ -17,6 +18,9 @@ MainWindow::MainWindow(QWidget *parent)
     , gameOutputText_(nullptr)
     , testSwapButton_(nullptr)
     , backToMenuButton_(nullptr)
+    , gameView_(nullptr)
+    , gameViewWidget_(nullptr)
+    , scoreLabel_(nullptr)
 {
     ui->setupUi(this);
     setupUi();
@@ -33,6 +37,9 @@ MainWindow::~MainWindow()
     }
     if (gameTestWidget_) {
         delete gameTestWidget_;
+    }
+    if (gameViewWidget_) {
+        delete gameViewWidget_;
     }
     delete ui;
 }
@@ -75,7 +82,7 @@ void MainWindow::showMainMenu()
  */
 void MainWindow::startCasualMode()
 {
-    qDebug() << "Start Casual Mode - Testing GameEngine";
+    qDebug() << "Start Casual Mode - OpenGL Rendering";
     
     // 创建游戏引擎
     if (!gameEngine_) {
@@ -85,17 +92,17 @@ void MainWindow::startCasualMode()
     // 初始化游戏
     gameEngine_->initializeGame();
     
-    // 创建游戏测试界面
-    if (!gameTestWidget_) {
-        createGameTestWidget();
+    // 创建OpenGL游戏视图
+    if (!gameViewWidget_) {
+        createGameViewWidget();
     }
     
-    // 显示游戏地图
-    displayGameMap();
+    // 设置引擎
+    gameView_->setGameEngine(gameEngine_);
     
     // 切换到游戏界面
-    ui->stackedWidget->addWidget(gameTestWidget_);
-    ui->stackedWidget->setCurrentWidget(gameTestWidget_);
+    ui->stackedWidget->addWidget(gameViewWidget_);
+    ui->stackedWidget->setCurrentWidget(gameViewWidget_);
 }
 
 /**
@@ -277,4 +284,49 @@ void MainWindow::backToMenu()
     
     // 切换到主菜单页面
     ui->stackedWidget->setCurrentIndex(0);
+}
+
+/**
+ * @brief 创建OpenGL游戏视图
+ */
+void MainWindow::createGameViewWidget()
+{
+    gameViewWidget_ = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(gameViewWidget_);
+    layout->setContentsMargins(0, 0, 0, 0);
+    
+    // 创建OpenGL游戏视图
+    gameView_ = new GameView(gameViewWidget_);
+    layout->addWidget(gameView_);
+    
+    // 添加底部控制栏
+    QHBoxLayout* controlLayout = new QHBoxLayout();
+    
+    // 分数显示
+    scoreLabel_ = new QLabel("💯 分数: 0 | 🔥 连击: 0");
+    scoreLabel_->setStyleSheet("QLabel { font-size: 16px; font-weight: bold; color: #FFD700; padding: 10px; }");
+    controlLayout->addWidget(scoreLabel_);
+    
+    controlLayout->addStretch();
+    
+    // 返回按钮
+    QPushButton* backButton = new QPushButton("返回主菜单");
+    backButton->setMinimumSize(120, 40);
+    connect(backButton, &QPushButton::clicked, this, &MainWindow::backToMenu);
+    controlLayout->addWidget(backButton);
+    
+    layout->addLayout(controlLayout);
+    
+    // 创建定时器更新分数
+    QTimer* scoreTimer = new QTimer(this);
+    connect(scoreTimer, &QTimer::timeout, this, [this]() {
+        if (gameEngine_ && scoreLabel_) {
+            int score = gameEngine_->getCurrentScore();
+            int combo = gameEngine_->getComboCount();
+            scoreLabel_->setText(QString("💯 分数: %1 | 🔥 连击: %2").arg(score).arg(combo));
+        }
+    });
+    scoreTimer->start(100);  // 每100ms更新一次
+    
+    qDebug() << "GameView widget created";
 }

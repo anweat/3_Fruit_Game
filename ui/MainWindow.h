@@ -5,6 +5,8 @@
 #include "GameEngine.h"
 #include <QTextEdit>
 #include <QPushButton>
+#include <QLabel>
+#include "views/GameView.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -63,11 +65,16 @@ private:
     // 游戏引擎
     GameEngine* gameEngine_;
     
-    // 游戏测试界面组件
+    // 游戏测试界面组件（控制台模式）
     QWidget* gameTestWidget_;
     QTextEdit* gameOutputText_;
     QPushButton* testSwapButton_;
     QPushButton* backToMenuButton_;
+    
+    // OpenGL游戏视图
+    GameView* gameView_;
+    QWidget* gameViewWidget_;
+    QLabel* scoreLabel_;  // 分数标签
     
     /**
      * @brief 初始化UI组件
@@ -83,6 +90,11 @@ private:
      * @brief 创建游戏测试界面
      */
     void createGameTestWidget();
+    
+    /**
+     * @brief 创建OpenGL游戏视图
+     */
+    void createGameViewWidget();
     
     /**
      * @brief 显示游戏地图

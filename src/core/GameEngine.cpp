@@ -90,25 +90,43 @@ bool GameEngine::swapFruits(int row1, int col1, int row2, int col2) {
  */
 bool GameEngine::processGameCycle() {
     bool hadElimination = false;
+    bool isFirstMatch = true;  // 标记是否是第一次匹配（只有第一次才生成特殊元素）
     
     // 循环处理：匹配 → 消除 → 下落 → 再匹配
     while (true) {
-        // 1. 检测并处理匹配
+        // 1. 检测匹配
         state_ = GameState::MATCHING;
-        int matchCount = detectAndProcessMatches();
+        auto matches = matchDetector_.detectMatches(map_);
         
-        if (matchCount == 0) {
-            // 没有匹配，结束循环
-            break;
+        if (matches.empty()) {
+            break;  // 没有匹配，结束循环
         }
         
         hadElimination = true;
         
-        // 2. 处理下落和填充
+        // 2. 如果是第一次匹配，生成特殊元素（在消除前）
+        std::set<std::pair<int, int>> specialPositions;  // 记录生成特殊元素的位置
+        if (isFirstMatch) {
+            processSpecialGeneration(matches, specialPositions);
+            isFirstMatch = false;
+        }
+        
+        // 3. 计算得分
+        int comboMultiplier = std::max(1, scoreCalculator_.getComboCount());
+        int score = scoreCalculator_.calculateTotalScore(matches, comboMultiplier);
+        currentScore_ += score;
+        
+        // 4. 消除匹配的水果（但跳过刚生成的特殊元素）
+        eliminateMatches(matches, specialPositions);
+        
+        // 5. 统计
+        totalMatches_ += matches.size();
+        
+        // 6. 处理下落和填充
         state_ = GameState::FALLING;
         processFallAndRefill();
         
-        // 3. 增加连击
+        // 7. 增加连击
         scoreCalculator_.incrementCombo();
     }
     
@@ -124,85 +142,65 @@ bool GameEngine::processGameCycle() {
 }
 
 /**
- * @brief 检测并处理所有匹配
- */
-int GameEngine::detectAndProcessMatches() {
-    // 1. 检测匹配
-    auto matches = matchDetector_.detectMatches(map_);
-    
-    if (matches.empty()) {
-        return 0;
-    }
-    
-    // 2. 处理特殊元素生成（在消除之前）
-    processSpecialGeneration(matches);
-    
-    // 3. 计算得分
-    int comboMultiplier = std::max(1, scoreCalculator_.getComboCount());
-    int score = scoreCalculator_.calculateTotalScore(matches, comboMultiplier);
-    currentScore_ += score;
-    
-    // 4. 消除匹配的水果
-    eliminateMatches(matches);
-    
-    // 5. 统计
-    totalMatches_ += matches.size();
-    
-    return matches.size();
-}
-
-/**
  * @brief 处理特殊元素生成
+ * @param specialPositions 输出参数，记录生成特殊元素的位置
  */
-void GameEngine::processSpecialGeneration(const std::vector<MatchResult>& matches) {
+void GameEngine::processSpecialGeneration(
+    const std::vector<MatchResult>& matches,
+    std::set<std::pair<int, int>>& specialPositions) {
+    
     for (const auto& match : matches) {
         // 判断是否应该生成特殊元素
         SpecialType specialType = specialGenerator_.determineSpecialType(match);
         
         if (specialType != SpecialType::NONE) {
-            // 在地图上生成特殊元素
-            specialGenerator_.generateSpecialFruit(map_, match, specialType);
+            // 在地图上生成特殊元素，并记录位置
+            auto pos = specialGenerator_.generateSpecialFruit(map_, match, specialType);
+            specialPositions.insert(pos);  // 记录特殊元素位置
         }
     }
 }
 
 /**
  * @brief 消除匹配的水果
+ * @param specialPositions 需要保留的特殊元素位置（刚生成的）
  */
-void GameEngine::eliminateMatches(const std::vector<MatchResult>& matches) {
+void GameEngine::eliminateMatches(
+    const std::vector<MatchResult>& matches,
+    const std::set<std::pair<int, int>>& specialPositions) {
+    
     state_ = GameState::ELIMINATING;
     
-    // 标记所有需要消除的位置
+    // 第一步：标记所有需要消除的位置（普通三消）
     for (const auto& match : matches) {
         for (const auto& pos : match.positions) {
-            // 检查是否是刚生成的特殊元素（不消除）
-            if (map_[pos.first][pos.second].special != SpecialType::NONE && 
-                !map_[pos.first][pos.second].isMatched) {
-                // 跳过特殊元素（它们会保留在地图上）
-                continue;
+            // 如果该位置是刚生成的特殊元素，跳过不消除
+            if (specialPositions.find(pos) != specialPositions.end()) {
+                continue;  // 保留刚生成的特殊元素
             }
-            
-            // 标记为已匹配
             map_[pos.first][pos.second].isMatched = true;
         }
     }
     
-    // 处理特殊元素效果（如果有的话）
+    // 第二步：处理特殊元素效果（被消除的特殊元素会触发效果）
     for (int row = 0; row < MAP_SIZE; row++) {
         for (int col = 0; col < MAP_SIZE; col++) {
             if (map_[row][col].isMatched && map_[row][col].special != SpecialType::NONE) {
                 std::set<std::pair<int, int>> affectedPositions;
                 specialProcessor_.triggerSpecialEffect(map_, row, col, affectedPositions);
                 
-                // 标记受影响的位置
+                // 标记受影响的位置为消除
                 for (const auto& pos : affectedPositions) {
-                    map_[pos.first][pos.second].isMatched = true;
+                    // 如果是刚生成的特殊元素，也不消除
+                    if (specialPositions.find(pos) == specialPositions.end()) {
+                        map_[pos.first][pos.second].isMatched = true;
+                    }
                 }
             }
         }
     }
     
-    // 执行消除
+    // 第三步：执行消除（清空所有被标记的位置）
     for (int row = 0; row < MAP_SIZE; row++) {
         for (int col = 0; col < MAP_SIZE; col++) {
             if (map_[row][col].isMatched) {

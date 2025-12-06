@@ -27,22 +27,43 @@ bool SpecialEffectProcessor::triggerSpecialEffect(
         return false;  // 不是特殊元素
     }
     
+    // 存储本次效果影响的位置
+    std::set<std::pair<int, int>> currentAffected;
+    
     // 根据特殊元素类型触发对应效果
     switch (specialType) {
         case SpecialType::LINE_H:
-            effectLineH(map, row, affectedPositions);
+            effectLineH(map, row, currentAffected);
             break;
         case SpecialType::LINE_V:
-            effectLineV(map, col, affectedPositions);
+            effectLineV(map, col, currentAffected);
             break;
         case SpecialType::DIAMOND:
-            effectDiamond(map, row, col, affectedPositions);
+            effectDiamond(map, row, col, currentAffected);
             break;
         case SpecialType::RAINBOW:
-            effectRainbow(map, row, col, affectedPositions);
+            effectRainbow(map, row, col, currentAffected);
             break;
         default:
             return false;
+    }
+    
+    // 将当前效果的位置加入总集合
+    affectedPositions.insert(currentAffected.begin(), currentAffected.end());
+    
+    // 检查受影响位置中是否有其他特殊元素，触发连锁反应
+    for (const auto& pos : currentAffected) {
+        int r = pos.first;
+        int c = pos.second;
+        
+        // 如果该位置有特殊元素且还未被处理
+        if (isValidPosition(r, c) && 
+            map[r][c].special != SpecialType::NONE && 
+            (r != row || c != col)) {  // 不重复触发自己
+            
+            // 递归触发该特殊元素的效果
+            triggerSpecialEffect(map, r, c, affectedPositions);
+        }
     }
     
     return true;

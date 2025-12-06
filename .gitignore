@@ -46,3 +46,4 @@ Testing/
 # Cache Files
 *.cache
 .cache/
+.clangd

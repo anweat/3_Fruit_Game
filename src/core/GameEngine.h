@@ -93,22 +93,22 @@ public:
     
 private:
     /**
-     * @brief 检测并处理所有匹配
-     * @return 匹配的数量
-     */
-    int detectAndProcessMatches();
-    
-    /**
      * @brief 处理特殊元素生成
      * @param matches 匹配结果列表
+     * @param specialPositions 输出参数，记录生成特殊元素的位置
      */
-    void processSpecialGeneration(const std::vector<MatchResult>& matches);
+    void processSpecialGeneration(
+        const std::vector<MatchResult>& matches,
+        std::set<std::pair<int, int>>& specialPositions);
     
     /**
      * @brief 消除匹配的水果
      * @param matches 匹配结果列表
+     * @param specialPositions 需要保留的特殊元素位置
      */
-    void eliminateMatches(const std::vector<MatchResult>& matches);
+    void eliminateMatches(
+        const std::vector<MatchResult>& matches,
+        const std::set<std::pair<int, int>>& specialPositions);
     
     /**
      * @brief 处理下落和填充空位
