@@ -27,6 +27,20 @@ private slots:
         map[0][1].type = FruitType::APPLE;
         map[0][2].type = FruitType::APPLE;
         
+        // 清理周围可能干扰的位置，确保恰好是3个匹配
+        if (map[0][3].type == FruitType::APPLE) {
+            map[0][3].type = FruitType::BANANA;
+        }
+        // 清理纵向可能的干扰
+        for (int col = 0; col <= 2; col++) {
+            if (map[1][col].type == FruitType::APPLE) {
+                map[1][col].type = FruitType::BANANA;
+            }
+            if (map[2][col].type == FruitType::APPLE) {
+                map[2][col].type = FruitType::GRAPE;
+            }
+        }
+        
         // 检测匹配
         auto matches = detector.detectMatches(map);
         

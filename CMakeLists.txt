@@ -42,6 +42,8 @@ set(CORE_SOURCES
     src/core/FruitGenerator.cpp
     src/core/FallProcessor.cpp
     src/core/ScoreCalculator.cpp
+    src/core/SpecialFruitGenerator.cpp
+    src/core/SpecialEffectProcessor.cpp
 )
 
 set(CORE_HEADERS
@@ -52,6 +54,8 @@ set(CORE_HEADERS
     src/core/FruitGenerator.h
     src/core/FallProcessor.h
     src/core/ScoreCalculator.h
+    src/core/SpecialFruitGenerator.h
+    src/core/SpecialEffectProcessor.h
 )
 
 set(SPECIAL_SOURCES

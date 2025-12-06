@@ -50,6 +50,22 @@ public:
     void fillEmptySlots(std::vector<std::vector<Fruit>>& map);
     
     /**
+     * @brief 重排地图（当无可移动时）
+     * @param map 游戏地图引用
+     * @param detector 匹配检测器引用，用于检测是否有可移动
+     * 打乱现有水果，重新排列，确保无三连且有可移动
+     */
+    void shuffleMap(std::vector<std::vector<Fruit>>& map, class MatchDetector& detector);
+    
+    /**
+     * @brief 确保地图有可移动（如果无解则自动重排）
+     * @param map 游戏地图引用
+     * @param detector 匹配检测器引用
+     * @return true表示地图有可移动，false表示重排失败（理论上不应该发生）
+     */
+    bool ensurePlayable(std::vector<std::vector<Fruit>>& map, class MatchDetector& detector);
+    
+    /**
      * @brief 设置随机种子
      * @param seed 种子值
      */

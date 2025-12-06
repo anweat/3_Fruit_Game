@@ -9,6 +9,9 @@ set(CORE_SOURCES_FOR_TEST
     ../src/core/MatchDetector.cpp
     ../src/core/FallProcessor.cpp
     ../src/core/ScoreCalculator.cpp
+    ../src/core/SpecialFruitGenerator.cpp
+    ../src/core/SpecialEffectProcessor.cpp
+    ../src/core/GameEngine.cpp
 )
 
 # 测试源文件
@@ -17,6 +20,9 @@ set(TEST_SOURCES
     test_fruit_generator.cpp
     test_fall_processor.cpp
     test_score_calculator.cpp
+    test_special_fruit_generator.cpp
+    test_special_effect_processor.cpp
+    test_game_engine.cpp
 )
 
 # 为每个测试文件创建可执行文件

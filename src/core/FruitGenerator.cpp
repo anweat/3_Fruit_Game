@@ -1,4 +1,5 @@
 ﻿#include "FruitGenerator.h"
+#include "MatchDetector.h"
 #include <chrono>
 #include <algorithm>
 
@@ -110,6 +111,66 @@ void FruitGenerator::fillEmptySlots(std::vector<std::vector<Fruit>>& map) {
 
 void FruitGenerator::setSeed(unsigned int seed) {
     rng_.seed(seed);
+}
+
+void FruitGenerator::shuffleMap(std::vector<std::vector<Fruit>>& map, MatchDetector& detector) {
+    // 收集所有非空水果类型
+    std::vector<FruitType> fruits;
+    for (int row = 0; row < MAP_SIZE; row++) {
+        for (int col = 0; col < MAP_SIZE; col++) {
+            if (map[row][col].type != FruitType::EMPTY) {
+                fruits.push_back(map[row][col].type);
+            }
+        }
+    }
+    
+    // 打乱水果列表
+    std::shuffle(fruits.begin(), fruits.end(), rng_);
+    
+    // 尝试多次重排，直到找到无三连且有可移动的排列
+    const int maxAttempts = 100;
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+        // 将打乱后的水果重新放回地图
+        int index = 0;
+        for (int row = 0; row < MAP_SIZE; row++) {
+            for (int col = 0; col < MAP_SIZE; col++) {
+                if (index < fruits.size()) {
+                    map[row][col].type = fruits[index];
+                    map[row][col].special = SpecialType::NONE;
+                    map[row][col].row = row;
+                    map[row][col].col = col;
+                    map[row][col].isMatched = false;
+                    map[row][col].isMoving = false;
+                    map[row][col].animationProgress = 0.0f;
+                    index++;
+                }
+            }
+        }
+        
+        // 检查是否无三连且有可移动
+        if (!detector.hasMatches(map) && detector.hasPossibleMoves(map)) {
+            return; // 成功找到合法排列
+        }
+        
+        // 如果不合法，重新打乱
+        std::shuffle(fruits.begin(), fruits.end(), rng_);
+    }
+    
+    // 如果所有尝试都失败，使用初始化地图的方法（保证能成功）
+    initializeMap(map);
+}
+
+bool FruitGenerator::ensurePlayable(std::vector<std::vector<Fruit>>& map, MatchDetector& detector) {
+    // 检查当前地图是否有可移动
+    if (detector.hasPossibleMoves(map)) {
+        return true; // 已经有可移动，无需处理
+    }
+    
+    // 无可移动，进行重排
+    shuffleMap(map, detector);
+    
+    // 再次检查是否有可移动
+    return detector.hasPossibleMoves(map);
 }
 
 bool FruitGenerator::wouldCreateMatch(const std::vector<std::vector<Fruit>>& map, 

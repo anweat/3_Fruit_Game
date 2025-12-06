@@ -2,6 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "GameEngine.h"
+#include <QTextEdit>
+#include <QPushButton>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -57,6 +60,15 @@ private slots:
 private:
     Ui::MainWindow *ui;
     
+    // 游戏引擎
+    GameEngine* gameEngine_;
+    
+    // 游戏测试界面组件
+    QWidget* gameTestWidget_;
+    QTextEdit* gameOutputText_;
+    QPushButton* testSwapButton_;
+    QPushButton* backToMenuButton_;
+    
     /**
      * @brief 初始化UI组件
      */
@@ -66,6 +78,26 @@ private:
      * @brief 连接信号和槽
      */
     void connectSignals();
+    
+    /**
+     * @brief 创建游戏测试界面
+     */
+    void createGameTestWidget();
+    
+    /**
+     * @brief 显示游戏地图
+     */
+    void displayGameMap();
+    
+    /**
+     * @brief 测试交换操作
+     */
+    void testSwap();
+    
+    /**
+     * @brief 返回主菜单
+     */
+    void backToMenu();
 };
 
 #endif // MAINWINDOW_H
