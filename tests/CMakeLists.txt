@@ -7,12 +7,15 @@ find_package(Qt6 REQUIRED COMPONENTS Test)
 set(CORE_SOURCES_FOR_TEST
     ../src/core/FruitGenerator.cpp
     ../src/core/MatchDetector.cpp
+    ../src/core/FallProcessor.cpp
+    ../src/core/ScoreCalculator.cpp
 )
 
 # 测试源文件
 set(TEST_SOURCES
     test_match_detector.cpp
     test_fruit_generator.cpp
+    test_fall_processor.cpp
     test_score_calculator.cpp
 )
 

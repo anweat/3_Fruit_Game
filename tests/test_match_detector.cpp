@@ -59,6 +59,21 @@ private slots:
         map[1][0].type = FruitType::ORANGE;
         map[2][0].type = FruitType::ORANGE;
         
+        // 清理周围可能干扰的位置，确保恰好是3个匹配
+        if (map[3][0].type == FruitType::ORANGE) {
+            map[3][0].type = FruitType::APPLE;  // 改成不同的水果
+        }
+        // 清理横向可能的干扰
+        if (map[0][1].type == FruitType::ORANGE) {
+            map[0][1].type = FruitType::APPLE;
+        }
+        if (map[1][1].type == FruitType::ORANGE) {
+            map[1][1].type = FruitType::APPLE;
+        }
+        if (map[2][1].type == FruitType::ORANGE) {
+            map[2][1].type = FruitType::APPLE;
+        }
+        
         // 检测匹配
         auto matches = detector.detectMatches(map);
         
@@ -91,6 +106,24 @@ private slots:
         map[3][4].type = FruitType::GRAPE;
         map[3][5].type = FruitType::GRAPE;
         
+        // 清理可能干扰的位置，确保恰好是4个匹配
+        if (map[3][1].type == FruitType::GRAPE) {
+            map[3][1].type = FruitType::APPLE;
+        }
+        if (map[3][6].type == FruitType::GRAPE) {
+            map[3][6].type = FruitType::APPLE;
+        }
+        // 清理纵向可能的干扰
+        for (int row = 0; row < MAP_SIZE; row++) {
+            if (row != 3) {
+                for (int col = 2; col <= 5; col++) {
+                    if (map[row][col].type == FruitType::GRAPE) {
+                        map[row][col].type = FruitType::APPLE;
+                    }
+                }
+            }
+        }
+        
         auto matches = detector.detectMatches(map);
         
         // 验证检测到4消，并应生成直线炸弹
@@ -118,6 +151,24 @@ private slots:
         map[5][3].type = FruitType::BANANA;
         map[5][4].type = FruitType::BANANA;
         map[5][5].type = FruitType::BANANA;
+        
+        // 清理可能干扰的位置，确保恰好是5个匹配
+        if (map[5][0].type == FruitType::BANANA) {
+            map[5][0].type = FruitType::APPLE;
+        }
+        if (map[5][6].type == FruitType::BANANA) {
+            map[5][6].type = FruitType::APPLE;
+        }
+        // 清理纵向可能的干扰
+        for (int row = 0; row < MAP_SIZE; row++) {
+            if (row != 5) {
+                for (int col = 1; col <= 5; col++) {
+                    if (map[row][col].type == FruitType::BANANA) {
+                        map[row][col].type = FruitType::APPLE;
+                    }
+                }
+            }
+        }
         
         auto matches = detector.detectMatches(map);
         
