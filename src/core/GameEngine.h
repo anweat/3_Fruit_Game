@@ -8,8 +8,105 @@
 #include "ScoreCalculator.h"
 #include "SpecialFruitGenerator.h"
 #include "SpecialEffectProcessor.h"
-#include <vector>
 #include <set>
+#include <vector>
+
+/**
+ * @brief 单次交换步骤信息（用于动画与成就统计）
+ */
+struct SwapStep {
+    int row1 = -1;
+    int col1 = -1;
+    int row2 = -1;
+    int col2 = -1;
+    bool success = false; ///< 是否交换成功（成功则进入消除流程，失败用于回弹动画）
+};
+
+/**
+ * @brief 炸弹特效类型
+ */
+enum class BombEffectType {
+    NONE,
+    LINE_H,     ///< 横排消除（白色长条覆盖一行）
+    LINE_V,     ///< 竖排消除（白色长条覆盖一列）
+    DIAMOND,    ///< 菱形消除（白色正方形扩散）
+    RAINBOW     ///< 彩虹消除（全屏闪光）
+};
+
+/**
+ * @brief 单个炸弹特效信息
+ */
+struct BombEffect {
+    BombEffectType type = BombEffectType::NONE;
+    int row = -1;       ///< 中心行（LINE_H 使用此行，DIAMOND/RAINBOW 使用此作为中心）
+    int col = -1;       ///< 中心列（LINE_V 使用此列，DIAMOND/RAINBOW 使用此作为中心）
+    int range = 2;      ///< 范围（菱形炸弹使用，默认为2表示5×5）
+};
+
+/**
+ * @brief 单轮消除步骤信息
+ */
+struct EliminationStep {
+    std::vector<std::pair<int, int>> positions; ///< 本轮被消除的所有格子
+    std::vector<BombEffect> bombEffects;        ///< 本轮触发的炸弹特效列表
+};
+
+/**
+ * @brief 单个下落移动信息
+ */
+struct FallMove {
+    int fromRow = -1;
+    int fromCol = -1;
+    int toRow   = -1;
+    int toCol   = -1;
+};
+
+/**
+ * @brief 单个新生成水果信息
+ */
+struct NewFruit {
+    int row = -1;
+    int col = -1;
+    FruitType type = FruitType::EMPTY;
+    SpecialType special = SpecialType::NONE;
+};
+
+/**
+ * @brief 单轮下落步骤信息
+ */
+struct FallStep {
+    std::vector<FallMove> moves;       ///< 本轮所有下落或移动
+    std::vector<NewFruit> newFruits;   ///< 本轮新生成的水果（包含类型信息）
+};
+
+/**
+ * @brief 一轮消除+下落的配对事件
+ */
+struct GameRound {
+    EliminationStep elimination;   ///< 本轮消除的元素
+    FallStep fall;                 ///< 本轮下落+新生成
+};
+
+/**
+ * @brief 一次完整主循环的动作记录
+ *
+ * 说明：
+ * - 由 GameEngine 在 swapFruits / processGameCycle 内填充
+ * - GameView 用于驱动动画
+ * - 成就系统可用来统计连消、一次性消除数量等
+ *
+ * 使用方式：
+ * 1. swap.success == false: 只播放交换回弹动画
+ * 2. swap.success == true: 播放交换动画 → 逐轮播放 rounds[i].elimination → rounds[i].fall
+ * 3. shuffled == true: 死局重排，播放重排动画
+ */
+struct GameAnimationSequence {
+    SwapStep swap;                   ///< 本次玩家交换信息
+    std::vector<GameRound> rounds;   ///< 多轮消除+下落的配对事件
+    int totalScoreDelta = 0;         ///< 本次操作总得分增量
+    bool shuffled = false;           ///< 是否发生死局重排
+    std::vector<std::vector<Fruit>> newMapAfterShuffle;  ///< 重排后的新地图（用于动画）
+};
 
 /**
  * @brief 游戏状态枚举
@@ -77,21 +174,9 @@ public:
     int getComboCount() const { return scoreCalculator_.getComboCount(); }
     
     /**
-     * @brief 获取游戏状态
+     * @brief 获取最近一次完整主循环的动作记录（只读）
      */
-    GameState getState() const { return state_; }
-    
-    /**
-     * @brief 检查地图是否有可移动
-     */
-    bool hasValidMoves() const;
-    
-    /**
-     * @brief 重置游戏
-     */
-    void resetGame();
-    
-private:
+    const GameAnimationSequence& getLastAnimation() const { return lastAnimation_; }
     /**
      * @brief 处理特殊元素生成
      * @param matches 匹配结果列表
@@ -111,10 +196,27 @@ private:
         const std::set<std::pair<int, int>>& specialPositions);
     
     /**
+     * @brief 消除匹配的水果，并记录到 elimStep
+     * @param matches 匹配结果列表
+     * @param specialPositions 需要保留的特殊元素位置
+     * @param elimStep 输出参数，记录本轮消除的位置
+     */
+    void recordAndEliminateMatches(
+        const std::vector<MatchResult>& matches,
+        const std::set<std::pair<int, int>>& specialPositions,
+        EliminationStep& elimStep);
+    
+    /**
      * @brief 处理下落和填充空位
      * @return 是否有水果下落
      */
     bool processFallAndRefill();
+    
+    /**
+     * @brief 处理下落和填充空位，并记录到 fallStep
+     * @param fallStep 输出参数，记录本轮下落和新生成信息
+     */
+    void recordFallAndRefill(FallStep& fallStep);
     
     /**
      * @brief 检查并处理死局
@@ -126,7 +228,40 @@ private:
      */
     bool isValidSwap(int row1, int col1, int row2, int col2) const;
     
+    /**
+     * @brief 获取游戏状态
+     */
+    GameState getState() const { return state_; }
+    
+    /**
+     * @brief 检查地图是否有可移动
+     */
+    bool hasValidMoves() const;
+    
+    /**
+     * @brief 重置游戏
+     */
+    void resetGame();
+    
 private:
+    /**
+     * @brief 处理 CANDY（Rainbow）元素的特殊交换逻辑
+     * 
+     * 交互规则：
+     * - CANDY + 普通元素：消除场上所有该普通元素类型
+     * - CANDY + 炸弹元素：把场上所有对应普通类型元素转化为随机类型炸弹并按顺序引爆
+     * - CANDY + CANDY：清除场上所有元素
+     * 
+     * @param row1 第一个位置的行
+     * @param col1 第一个位置的列
+     * @param row2 第二个位置的行
+     * @param col2 第二个位置的列
+     * @param isCandy1 第一个是否为 CANDY
+     * @param isCandy2 第二个是否为 CANDY
+     * @return 交换是否成功（CANDY 交换总是成功）
+     */
+    bool handleCandySwap(int row1, int col1, int row2, int col2,
+                         bool isCandy1, bool isCandy2);
     // 子系统
     FruitGenerator fruitGenerator_;              ///< 水果生成器
     MatchDetector matchDetector_;                ///< 匹配检测器
@@ -140,6 +275,9 @@ private:
     GameState state_;                            ///< 当前游戏状态
     int currentScore_;                           ///< 当前分数
     int totalMatches_;                           ///< 总匹配次数（统计用）
+    
+    // 记录最近一次玩家操作产生的完整动画序列
+    GameAnimationSequence lastAnimation_;
 };
 
 #endif // GAMEENGINE_H

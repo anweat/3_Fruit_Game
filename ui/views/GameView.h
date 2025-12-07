@@ -1,4 +1,4 @@
-﻿#ifndef GAMEVIEW_H
+#ifndef GAMEVIEW_H
 #define GAMEVIEW_H
 
 #include <QOpenGLWidget>
@@ -7,8 +7,21 @@
 #include <QTimer>
 #include <QMouseEvent>
 #include <vector>
+#include <array>
+#include <set>
 #include <memory>
 #include "GameEngine.h"
+
+/**
+ * @brief 视图动画阶段（严格按时序推进）
+ */
+enum class AnimPhase {
+    IDLE,           ///< 空闲，等待玩家操作
+    SWAPPING,       ///< 交换动画中（成功或失败）
+    ELIMINATING,    ///< 消除动画中
+    FALLING,        ///< 下落+新生成入场动画中
+    SHUFFLING       ///< 死局重排动画中
+};
 
 /**
  * @brief 游戏OpenGL渲染视图
@@ -23,79 +36,113 @@ public:
     explicit GameView(QWidget *parent = nullptr);
     ~GameView() override;
     
-    /**
-     * @brief 设置游戏引擎
-     */
     void setGameEngine(GameEngine* engine);
-    
-    /**
-     * @brief 更新显示
-     */
     void updateDisplay();
 
 protected:
-    // OpenGL核心函数
     void initializeGL() override;
     void resizeGL(int w, int h) override;
     void paintGL() override;
-    
-    // 鼠标事件
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
 
 private slots:
-    /**
-     * @brief 动画定时器更新
-     */
     void onAnimationTimer();
 
 private:
-    /**
-     * @brief 加载所有水果纹理
-     */
+    // ========== 纹理 & 绘制基础 ==========
     void loadTextures();
-    
-    /**
-     * @brief 绘制水果网格
-     */
-    void drawFruitGrid();
-    
-    /**
-     * @brief 绘制单个水果
-     */
-    void drawFruit(int row, int col, const Fruit& fruit);
-    
-    /**
-     * @brief 绘制选中框
-     */
+    void drawQuad(float x, float y, float size);
+    void drawFruit(int row, int col, const Fruit& fruit, float offsetX = 0.0f, float offsetY = 0.0f);
     void drawSelection();
-    
-    /**
-     * @brief 屏幕坐标转换为网格坐标
-     */
     bool screenToGrid(int x, int y, int& row, int& col);
     
-    /**
-     * @brief 绘制四边形
-     */
-    void drawQuad(float x, float y, float size);
+    // ========== 渲染各层 ==========
+    void drawFruitGrid();           ///< 静态水果层（隐藏 hiddenCells_）
+    void drawSwapAnimation();       ///< 交换动画覆盖层
+    void drawEliminationAnimation();///< 消除动画覆盖层
+    void drawFallAnimation();       ///< 下落动画覆盖层
+    void drawBombEffects();         ///< 炸弹特效动画层
     
-    GameEngine* gameEngine_;                              // 游戏引擎
-    std::vector<QOpenGLTexture*> fruitTextures_;         // 水果纹理数组
+    // ========== 动画阶段控制函数 ==========
+    /// 开始交换动画（从 lastAnimation_.swap 初始化）
+    void beginSwapAnimation(bool success);
+    /// 更新交换动画进度，返回是否完成
+    bool updateSwapAnimation();
+    
+    /// 开始第 stepIndex 轮消除动画（使用 rounds[stepIndex].elimination）
+    void beginEliminationStep(int roundIndex);
+    /// 更新消除动画进度，返回是否完成
+    bool updateEliminationAnimation();
+    
+    /// 开始第 stepIndex 轮下落动画（使用 rounds[stepIndex].fall）
+    void beginFallStep(int roundIndex);
+    /// 更新下落动画进度，返回是否完成
+    bool updateFallAnimation();
+    
+    /// 开始重排动画
+    void beginShuffleAnimation();
+    /// 更新重排动画进度，返回是否完成
+    bool updateShuffleAnimation();
+    /// 绘制重排动画
+    void drawShuffleAnimation();
+    
+    /// 计算当前轮消除+下落的列级隐藏范围
+    void computeColumnHiddenRanges();
+    
+    /// 更新 hiddenCells_ 集合
+    void updateHiddenCells();
+    
+    /// 保存当前地图快照
+    void saveMapSnapshot();
+    
+    /// 根据消除消息更新快照（清空被消除的格子）
+    void applyEliminationToSnapshot(int roundIndex);
+    
+    /// 根据下落消息更新快照（移动元素+生成新元素）
+    void applyFallToSnapshot(int roundIndex);
+    
+    /// 检查 (row, col) 是否在当前隐藏范围内
+    bool isCellHidden(int row, int col) const;
+    
+    GameEngine* gameEngine_;                              ///< 游戏引擎
+    std::vector<std::vector<Fruit>> mapSnapshot_;          ///< 地图快照（动画期间使用）
+    std::vector<QOpenGLTexture*> fruitTextures_;          ///< 水果纹理数组
     
     // 网格布局参数
-    float gridStartX_;                                   // 网格起始X坐标
-    float gridStartY_;                                   // 网格起始Y坐标
-    float cellSize_;                                     // 单元格大小
+    float gridStartX_;
+    float gridStartY_;
+    float cellSize_;
     
     // 选中状态
-    int selectedRow_;                                    // 选中的行
-    int selectedCol_;                                    // 选中的列
-    bool hasSelection_;                                  // 是否有选中
+    int selectedRow_;
+    int selectedCol_;
+    bool hasSelection_;
     
-    // 动画
-    QTimer* animationTimer_;                             // 动画定时器
-    int animationFrame_;                                 // 动画帧计数
+    // 动画定时器 & 帧计数
+    QTimer* animationTimer_;
+    int animationFrame_;
+    
+    // ========== 动画状态机 ==========
+    AnimPhase animPhase_ = AnimPhase::IDLE;              ///< 当前动画阶段
+    float animProgress_ = 0.0f;                          ///< 当前阶段进度 0~1
+    bool swapSuccess_ = false;                           ///< 当前交换是否成功
+    
+    // 交换动画参数
+    int swapRow1_ = -1;
+    int swapCol1_ = -1;
+    int swapRow2_ = -1;
+    int swapCol2_ = -1;
+    Fruit swapFruit1_;                                   ///< 交换前第一个格子的水果
+    Fruit swapFruit2_;                                   ///< 交换前第二个格子的水果
+    
+    // 轮次动画索引（rounds[currentRoundIndex_] 包含消除+下落）
+    int currentRoundIndex_ = -1;
+    
+    // ========== 隐藏格子集合 ==========
+    // 在动画期间，这些格子的静态层不绘制，由动画层负责
+    std::set<std::pair<int, int>> hiddenCells_;
 };
 
 #endif // GAMEVIEW_H
+

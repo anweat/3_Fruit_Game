@@ -34,18 +34,19 @@ std::vector<MatchResult> MatchDetector::detectMatchesAt(const std::vector<std::v
                                                          int row, int col) {
     std::vector<MatchResult> results;
     
-    if (!isValidPosition(row, col) || map[row][col].type == FruitType::EMPTY) {
+    // CANDY 类型不参与普通三消匹配
+    if (!isValidPosition(row, col) || !isMatchableFruit(map[row][col].type)) {
         return results;
     }
     
     FruitType targetType = map[row][col].type;
     
-    // 检测横向匹配
+    // 检测横向匹配（CANDY 不参与）
     int leftCount = 0, rightCount = 0;
-    for (int c = col - 1; c >= 0 && map[row][c].type == targetType; c--) {
+    for (int c = col - 1; c >= 0 && isMatchableFruit(map[row][c].type) && map[row][c].type == targetType; c--) {
         leftCount++;
     }
-    for (int c = col + 1; c < MAP_SIZE && map[row][c].type == targetType; c++) {
+    for (int c = col + 1; c < MAP_SIZE && isMatchableFruit(map[row][c].type) && map[row][c].type == targetType; c++) {
         rightCount++;
     }
     
@@ -65,12 +66,12 @@ std::vector<MatchResult> MatchDetector::detectMatchesAt(const std::vector<std::v
         results.push_back(match);
     }
     
-    // 检测纵向匹配
+    // 检测纵向匹配（CANDY 不参与）
     int upCount = 0, downCount = 0;
-    for (int r = row - 1; r >= 0 && map[r][col].type == targetType; r--) {
+    for (int r = row - 1; r >= 0 && isMatchableFruit(map[r][col].type) && map[r][col].type == targetType; r--) {
         upCount++;
     }
-    for (int r = row + 1; r < MAP_SIZE && map[r][col].type == targetType; r++) {
+    for (int r = row + 1; r < MAP_SIZE && isMatchableFruit(map[r][col].type) && map[r][col].type == targetType; r++) {
         downCount++;
     }
     
@@ -133,11 +134,12 @@ std::vector<MatchResult> MatchDetector::detectHorizontalMatches(
         for (int col = 1; col <= MAP_SIZE; col++) {
             FruitType nextType = (col < MAP_SIZE) ? map[row][col].type : FruitType::EMPTY;
             
-            if (col < MAP_SIZE && nextType == currentType && currentType != FruitType::EMPTY) {
+            // CANDY 类型不参与普通三消匹配
+            if (col < MAP_SIZE && nextType == currentType && isMatchableFruit(currentType)) {
                 count++;
             } else {
                 // 检查是否形成匹配
-                if (count >= 3 && currentType != FruitType::EMPTY) {
+                if (count >= 3 && isMatchableFruit(currentType)) {
                     MatchResult match;
                     match.fruitType = currentType;
                     match.direction = MatchDirection::HORIZONTAL;
@@ -178,11 +180,12 @@ std::vector<MatchResult> MatchDetector::detectVerticalMatches(
         for (int row = 1; row <= MAP_SIZE; row++) {
             FruitType nextType = (row < MAP_SIZE) ? map[row][col].type : FruitType::EMPTY;
             
-            if (row < MAP_SIZE && nextType == currentType && currentType != FruitType::EMPTY) {
+            // CANDY 类型不参与普通三消匹配
+            if (row < MAP_SIZE && nextType == currentType && isMatchableFruit(currentType)) {
                 count++;
             } else {
                 // 检查是否形成匹配
-                if (count >= 3 && currentType != FruitType::EMPTY) {
+                if (count >= 3 && isMatchableFruit(currentType)) {
                     MatchResult match;
                     match.fruitType = currentType;
                     match.direction = MatchDirection::VERTICAL;

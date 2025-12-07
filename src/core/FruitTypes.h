@@ -23,7 +23,8 @@ enum class FruitType {
     BANANA,     // 香蕉 - 3
     WATERMELON, // 西瓜 - 4
     STRAWBERRY, // 草莓 - 5
-    EMPTY       // 空位 - 6 (用于消除后的空位)
+    CANDY,      // 彩虹糖 - 6 (5消生成的万能元素，不参与普通三消匹配)
+    EMPTY       // 空位 - 7 (用于消除后的空位)
 };
 
 /**
@@ -255,6 +256,20 @@ struct GameStatistics {
  */
 inline bool isEmpty(FruitType type) {
     return type == FruitType::EMPTY;
+}
+
+/**
+ * @brief 判断是否为彩虹糖（不参与普通三消匹配）
+ */
+inline bool isCandy(FruitType type) {
+    return type == FruitType::CANDY;
+}
+
+/**
+ * @brief 判断是否为普通可匹配水果（排除 EMPTY 和 CANDY）
+ */
+inline bool isMatchableFruit(FruitType type) {
+    return type != FruitType::EMPTY && type != FruitType::CANDY;
 }
 
 /**

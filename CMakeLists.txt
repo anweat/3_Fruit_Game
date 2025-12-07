@@ -23,15 +23,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/core
-    ${CMAKE_SOURCE_DIR}/src/special
     ${CMAKE_SOURCE_DIR}/src/props
-    ${CMAKE_SOURCE_DIR}/src/score
     ${CMAKE_SOURCE_DIR}/src/mode
     ${CMAKE_SOURCE_DIR}/src/achievement
     ${CMAKE_SOURCE_DIR}/src/data
     ${CMAKE_SOURCE_DIR}/src/utils
     ${CMAKE_SOURCE_DIR}/ui
-    ${CMAKE_SOURCE_DIR}/animation
+    ${CMAKE_SOURCE_DIR}/ui/animation
 )
 
 # 源文件
@@ -58,19 +56,7 @@ set(CORE_HEADERS
     src/core/SpecialEffectProcessor.h
 )
 
-set(SPECIAL_SOURCES
-    src/special/SpecialFruit.cpp
-    src/special/LineBomb.cpp
-    src/special/DiamondBomb.cpp
-    src/special/RainbowFruit.cpp
-)
-
-set(SPECIAL_HEADERS
-    src/special/SpecialFruit.h
-    src/special/LineBomb.h
-    src/special/DiamondBomb.h
-    src/special/RainbowFruit.h
-)
+# 已删除: src/special/ 目录 (功能已由 SpecialFruitGenerator + SpecialEffectProcessor 实现)
 
 set(PROPS_SOURCES
     src/props/PropManager.cpp
@@ -86,17 +72,7 @@ set(PROPS_HEADERS
     src/props/MagicWand.h
 )
 
-set(SCORE_SOURCES
-    src/score/ScoreManager.cpp
-    src/score/ComboTracker.cpp
-    src/score/PointSystem.cpp
-)
-
-set(SCORE_HEADERS
-    src/score/ScoreManager.h
-    src/score/ComboTracker.h
-    src/score/PointSystem.h
-)
+# 已删除: src/score/ 目录 (功能已由 ScoreCalculator 实现)
 
 set(MODE_SOURCES
     src/mode/GameMode.cpp
@@ -141,48 +117,39 @@ set(UTILS_HEADERS
 
 set(UI_SOURCES
     ui/MainWindow.cpp
-    ui/views/MainMenuView.cpp
     ui/views/GameView.cpp
     ui/views/RankView.cpp
     ui/views/AchievementView.cpp
-    ui/widgets/FruitWidget.cpp
-    ui/widgets/PropButton.cpp
-    ui/widgets/ScoreBoard.cpp
 )
 
 set(UI_HEADERS
     ui/MainWindow.h
-    ui/views/MainMenuView.h
     ui/views/GameView.h
     ui/views/RankView.h
     ui/views/AchievementView.h
-    ui/widgets/FruitWidget.h
-    ui/widgets/PropButton.h
-    ui/widgets/ScoreBoard.h
 )
+
+# 已删除: ui/views/MainMenuView 和 ui/widgets/ (使用 OpenGL 直接渲染)
 
 set(UI_FORMS
     ui/MainWindow.ui
 )
 
 set(ANIMATION_SOURCES
-    animation/AnimationManager.cpp
-    animation/GLRenderer.cpp
-    animation/ParticleSystem.cpp
-    animation/effects/SwapEffect.cpp
-    animation/effects/EliminateEffect.cpp
-    animation/effects/FallEffect.cpp
-    animation/effects/BombEffect.cpp
+    ui/animation/SwapEffect.cpp
+    ui/animation/EliminateEffect.cpp
+    ui/animation/FallEffect.cpp
+    ui/animation/BombEffect.cpp
+    ui/animation/AnimationRenderer.cpp
 )
 
 set(ANIMATION_HEADERS
-    animation/AnimationManager.h
-    animation/GLRenderer.h
-    animation/ParticleSystem.h
-    animation/effects/SwapEffect.h
-    animation/effects/EliminateEffect.h
-    animation/effects/FallEffect.h
-    animation/effects/BombEffect.h
+    ui/animation/IAnimationEffect.h
+    ui/animation/SwapEffect.h
+    ui/animation/EliminateEffect.h
+    ui/animation/FallEffect.h
+    ui/animation/BombEffect.h
+    ui/animation/AnimationRenderer.h
 )
 
 # 资源文件（如果有的话）
@@ -192,9 +159,7 @@ set(ANIMATION_HEADERS
 add_executable(${PROJECT_NAME}
     main.cpp
     ${CORE_SOURCES} ${CORE_HEADERS}
-    ${SPECIAL_SOURCES} ${SPECIAL_HEADERS}
     ${PROPS_SOURCES} ${PROPS_HEADERS}
-    ${SCORE_SOURCES} ${SCORE_HEADERS}
     ${MODE_SOURCES} ${MODE_HEADERS}
     ${ACHIEVEMENT_SOURCES} ${ACHIEVEMENT_HEADERS}
     ${DATA_SOURCES} ${DATA_HEADERS}

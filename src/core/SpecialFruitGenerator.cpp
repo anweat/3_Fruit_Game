@@ -39,6 +39,11 @@ SpecialType SpecialFruitGenerator::determineSpecialType(const MatchResult& match
 
 /**
  * @brief 在地图上生成特殊水果
+ * 
+ * 说明：
+ * - RAINBOW 类型会将水果类型设为 CANDY（独立彩虹糖，不参与普通三消）
+ * - 其他类型保持原有水果类型
+ * - 如果目标位置已有炸弹，返回 {-2, -2} 表示需要触发组合效果
  */
 std::pair<int, int> SpecialFruitGenerator::generateSpecialFruit(
     std::vector<std::vector<Fruit>>& map,
@@ -56,9 +61,20 @@ std::pair<int, int> SpecialFruitGenerator::generateSpecialFruit(
         return {-1, -1};  // 位置无效
     }
     
-    // 在该位置生成特殊水果（保持原有水果类型，但添加特殊属性）
+    // 检查目标位置是否已经有炸弹
+    if (map[pos.first][pos.second].special != SpecialType::NONE) {
+        // 返回特殊标记，表示需要触发组合效果
+        return {-2, -2};
+    }
+    
+    // 设置特殊属性
     map[pos.first][pos.second].special = specialType;
     map[pos.first][pos.second].isMatched = false;  // 不标记为已匹配，保留在地图上
+    
+    // RAINBOW 类型特殊处理：将水果类型改为 CANDY（独立彩虹糖）
+    if (specialType == SpecialType::RAINBOW) {
+        map[pos.first][pos.second].type = FruitType::CANDY;
+    }
     
     return pos;
 }

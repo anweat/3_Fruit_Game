@@ -53,36 +53,6 @@ public:
                                    int row2, int col2,
                                    std::set<std::pair<int, int>>& affectedPositions);
     
-private:
-    /**
-     * @brief 直线炸弹（横向）效果 - 消除整行
-     */
-    void effectLineH(std::vector<std::vector<Fruit>>& map,
-                     int row,
-                     std::set<std::pair<int, int>>& affectedPositions);
-    
-    /**
-     * @brief 直线炸弹（纵向）效果 - 消除整列
-     */
-    void effectLineV(std::vector<std::vector<Fruit>>& map,
-                     int col,
-                     std::set<std::pair<int, int>>& affectedPositions);
-    
-    /**
-     * @brief 菱形炸弹效果 - 消除5×5菱形范围
-     */
-    void effectDiamond(std::vector<std::vector<Fruit>>& map,
-                       int row, int col,
-                       std::set<std::pair<int, int>>& affectedPositions,
-                       int range = 2);
-    
-    /**
-     * @brief 万能炸弹效果 - 消除场上所有同类型水果
-     */
-    void effectRainbow(std::vector<std::vector<Fruit>>& map,
-                       int row, int col,
-                       std::set<std::pair<int, int>>& affectedPositions);
-    
     /**
      * @brief 组合效果：直线+直线 → 十字消除
      */
@@ -117,6 +87,36 @@ private:
      */
     void comboRainbowRainbow(std::vector<std::vector<Fruit>>& map,
                              std::set<std::pair<int, int>>& affectedPositions);
+    
+private:
+    /**
+     * @brief 直线炸弹（横向）效果 - 消除整行
+     */
+    void effectLineH(std::vector<std::vector<Fruit>>& map,
+                     int row,
+                     std::set<std::pair<int, int>>& affectedPositions);
+    
+    /**
+     * @brief 直线炸弹（纵向）效果 - 消除整列
+     */
+    void effectLineV(std::vector<std::vector<Fruit>>& map,
+                     int col,
+                     std::set<std::pair<int, int>>& affectedPositions);
+    
+    /**
+     * @brief 菱形炸弹效果 - 消除5×5菱形范围
+     */
+    void effectDiamond(std::vector<std::vector<Fruit>>& map,
+                       int row, int col,
+                       std::set<std::pair<int, int>>& affectedPositions,
+                       int range = 2);
+    
+    /**
+     * @brief 万能炸弹效果 - 消除场上所有同类型水果
+     */
+    void effectRainbow(std::vector<std::vector<Fruit>>& map,
+                       int row, int col,
+                       std::set<std::pair<int, int>>& affectedPositions);
     
     /**
      * @brief 检查位置是否有效
