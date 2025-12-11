@@ -152,8 +152,21 @@ set(ANIMATION_HEADERS
     ui/animation/AnimationRenderer.h
 )
 
-# 资源文件（如果有的话）
-# set(RESOURCES resources/resources.qrc)
+# 资源文件列表
+set(RESOURCE_FILES
+    resources/texture.png
+    resources/textures/apple.png
+    resources/textures/banana.png
+    resources/textures/cherry.png
+    resources/textures/grape.png
+    resources/textures/lemon.png
+    resources/textures/mango.png
+    resources/textures/orange.png
+    resources/textures/pear.png
+    resources/textures/strawberry.png
+    resources/textures/watermelon.png
+    resources/textures/Candy.png
+)
 
 # 主可执行文件
 add_executable(${PROJECT_NAME}
@@ -180,6 +193,35 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Sql
     opengl32
 )
+
+# 复制资源文件到build目录
+foreach(RESOURCE_FILE ${RESOURCE_FILES})
+    # 获取资源文件的相对路径
+    file(RELATIVE_PATH REL_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/${RESOURCE_FILE})
+    # 设置目标路径
+    set(DST_FILE ${CMAKE_BINARY_DIR}/${REL_PATH})
+    # 添加自定义命令，在构建后复制文件
+    add_custom_command(
+        TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/${RESOURCE_FILE}
+        ${DST_FILE}
+        COMMENT "Copying resource: ${RESOURCE_FILE}"
+    )
+endforeach()
+
+# 同时复制到bin目录（可执行文件旁边）
+foreach(RESOURCE_FILE ${RESOURCE_FILES})
+    file(RELATIVE_PATH REL_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/${RESOURCE_FILE})
+    set(DST_FILE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${REL_PATH})
+    add_custom_command(
+        TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/${RESOURCE_FILE}
+        ${DST_FILE}
+        COMMENT "Copying resource to bin: ${RESOURCE_FILE}"
+    )
+endforeach()
 
 # Windows平台设置
 if(WIN32)
