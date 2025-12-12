@@ -1,4 +1,5 @@
 #include "SpecialFruitGenerator.h"
+#include <map>
 
 SpecialFruitGenerator::SpecialFruitGenerator() {
     // 构造函数
@@ -145,20 +146,79 @@ bool SpecialFruitGenerator::detectLTShape(
 
 /**
  * @brief 计算特殊水果应该生成的位置（通常是匹配序列的中心位置）
+ * 
+ * 策略：
+ * - 直线匹配：选择中间位置
+ * - L形/T形：选择交叉点（横竖线的交点）
  */
 std::pair<int, int> SpecialFruitGenerator::calculateGeneratePosition(const MatchResult& match) const {
     if (match.positions.empty()) {
         return {-1, -1};
     }
     
-    // 对于L形或T形，选择交叉点作为生成位置
+    // 对于L形或T形，精确计算交叉点位置
     if (match.direction == MatchDirection::L_SHAPE || match.direction == MatchDirection::T_SHAPE) {
-        // 简单策略：选择第一个位置（实际应该是交叉点，这里简化处理）
-        // TODO: 更精确的交叉点计算
-        return match.positions[0];
+        // 统计每个行和列的出现次数
+        std::map<int, int> rowCount;  // 行号 -> 出现次数
+        std::map<int, int> colCount;  // 列号 -> 出现次数
+        
+        for (const auto& pos : match.positions) {
+            rowCount[pos.first]++;
+            colCount[pos.second]++;
+        }
+        
+        // 找到出现次数 >= 3 的行和列
+        std::vector<int> majorRows;  // 主要行（有3个及以上元素）
+        std::vector<int> majorCols;  // 主要列（有3个及以上元素）
+        
+        for (const auto& pair : rowCount) {
+            if (pair.second >= 3) {
+                majorRows.push_back(pair.first);
+            }
+        }
+        for (const auto& pair : colCount) {
+            if (pair.second >= 3) {
+                majorCols.push_back(pair.first);
+            }
+        }
+        
+        // 交叉点必定是主要行和主要列的交点
+        // T形：会有1行2列 或 2行1列
+        // L形：会有1行1列
+        if (!majorRows.empty() && !majorCols.empty()) {
+            int targetRow = majorRows[0];
+            int targetCol = majorCols[0];
+            
+            // 检查这个交叉点是否在匹配位置列表中
+            for (const auto& pos : match.positions) {
+                if (pos.first == targetRow && pos.second == targetCol) {
+                    return pos;  // 找到交叉点
+                }
+            }
+            
+            // 如果没找到（理论上不应该发生），检查其他可能的交叉点
+            for (int row : majorRows) {
+                for (int col : majorCols) {
+                    for (const auto& pos : match.positions) {
+                        if (pos.first == row && pos.second == col) {
+                            return pos;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 如果上述逻辑都失败，退回到中心位置
+        size_t midIndex = match.positions.size() / 2;
+        return match.positions[midIndex];
     }
     
-    // 对于直线匹配，选择中间位置
-    size_t midIndex = match.positions.size() / 2;
-    return match.positions[midIndex];
+    // 对于直线匹配（HORIZONTAL/VERTICAL），选择中间位置
+    if (match.direction == MatchDirection::HORIZONTAL || match.direction == MatchDirection::VERTICAL) {
+        size_t midIndex = match.positions.size() / 2;
+        return match.positions[midIndex];
+    }
+    
+    // 其他情况（理论上不应该到这里），返回第一个位置
+    return match.positions[0];
 }
