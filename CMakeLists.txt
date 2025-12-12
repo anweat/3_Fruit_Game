@@ -57,6 +57,9 @@ set(CORE_SOURCES
     src/core/ScoreCalculator.cpp
     src/core/SpecialFruitGenerator.cpp
     src/core/SpecialEffectProcessor.cpp
+    src/core/SwapHandler.cpp
+    src/core/AnimationRecorder.cpp
+    src/core/GameCycleProcessor.cpp
 )
 
 set(CORE_HEADERS
@@ -69,6 +72,9 @@ set(CORE_HEADERS
     src/core/ScoreCalculator.h
     src/core/SpecialFruitGenerator.h
     src/core/SpecialEffectProcessor.h
+    src/core/SwapHandler.h
+    src/core/AnimationRecorder.h
+    src/core/GameCycleProcessor.h
 )
 
 # 已删除: src/special/ 目录 (功能已由 SpecialFruitGenerator + SpecialEffectProcessor 实现)

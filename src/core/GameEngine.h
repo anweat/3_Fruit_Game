@@ -8,6 +8,9 @@
 #include "ScoreCalculator.h"
 #include "SpecialFruitGenerator.h"
 #include "SpecialEffectProcessor.h"
+#include "SwapHandler.h"
+#include "AnimationRecorder.h"
+#include "GameCycleProcessor.h"
 #include <set>
 #include <vector>
 
@@ -177,51 +180,7 @@ public:
      * @brief 获取最近一次完整主循环的动作记录（只读）
      */
     const GameAnimationSequence& getLastAnimation() const { return lastAnimation_; }
-    /**
-     * @brief 处理特殊元素生成
-     * @param matches 匹配结果列表
-     * @param specialPositions 输出参数，记录生成特殊元素的位置
-     */
-    void processSpecialGeneration(
-        const std::vector<MatchResult>& matches,
-        std::set<std::pair<int, int>>& specialPositions);
-    
-    /**
-     * @brief 消除匹配的水果
-     * @param matches 匹配结果列表
-     * @param specialPositions 需要保留的特殊元素位置
-     */
-    void eliminateMatches(
-        const std::vector<MatchResult>& matches,
-        const std::set<std::pair<int, int>>& specialPositions);
-    
-    /**
-     * @brief 消除匹配的水果，并记录到 elimStep
-     * @param matches 匹配结果列表
-     * @param specialPositions 需要保留的特殊元素位置
-     * @param elimStep 输出参数，记录本轮消除的位置
-     */
-    void recordAndEliminateMatches(
-        const std::vector<MatchResult>& matches,
-        const std::set<std::pair<int, int>>& specialPositions,
-        EliminationStep& elimStep);
-    
-    /**
-     * @brief 处理下落和填充空位
-     * @return 是否有水果下落
-     */
-    bool processFallAndRefill();
-    
-    /**
-     * @brief 处理下落和填充空位，并记录到 fallStep
-     * @param fallStep 输出参数，记录本轮下落和新生成信息
-     */
-    void recordFallAndRefill(FallStep& fallStep);
-    
-    /**
-     * @brief 检查并处理死局
-     */
-    void checkAndHandleDeadlock();
+
     
     /**
      * @brief 验证交换是否合法（是否相邻）
@@ -244,31 +203,18 @@ public:
     void resetGame();
     
 private:
-    /**
-     * @brief 处理 CANDY（Rainbow）元素的特殊交换逻辑
-     * 
-     * 交互规则：
-     * - CANDY + 普通元素：消除场上所有该普通元素类型
-     * - CANDY + 炸弹元素：把场上所有对应普通类型元素转化为随机类型炸弹并按顺序引爆
-     * - CANDY + CANDY：清除场上所有元素
-     * 
-     * @param row1 第一个位置的行
-     * @param col1 第一个位置的列
-     * @param row2 第二个位置的行
-     * @param col2 第二个位置的列
-     * @param isCandy1 第一个是否为 CANDY
-     * @param isCandy2 第二个是否为 CANDY
-     * @return 交换是否成功（CANDY 交换总是成功）
-     */
-    bool handleCandySwap(int row1, int col1, int row2, int col2,
-                         bool isCandy1, bool isCandy2);
-    // 子系统
+    // 基础子系统
     FruitGenerator fruitGenerator_;              ///< 水果生成器
     MatchDetector matchDetector_;                ///< 匹配检测器
     FallProcessor fallProcessor_;                ///< 下落处理器
     ScoreCalculator scoreCalculator_;            ///< 计分系统
     SpecialFruitGenerator specialGenerator_;     ///< 特殊元素生成器
     SpecialEffectProcessor specialProcessor_;    ///< 特殊效果处理器
+    
+    // 解耦后的功能模块
+    SwapHandler swapHandler_;                    ///< 交换处理器
+    AnimationRecorder animRecorder_;             ///< 动画记录器
+    GameCycleProcessor cycleProcessor_;          ///< 循环处理器
     
     // 游戏数据
     std::vector<std::vector<Fruit>> map_;        ///< 游戏地图 (8×8)
