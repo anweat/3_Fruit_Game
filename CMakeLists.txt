@@ -6,6 +6,18 @@ project(FruitCrush VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# 平台检测
+if(WIN32)
+    message(STATUS "Building for Windows")
+    set(PLATFORM_NAME "Windows")
+elseif(APPLE)
+    message(STATUS "Building for macOS")
+    set(PLATFORM_NAME "macOS")
+elseif(UNIX)
+    message(STATUS "Building for Linux/Unix")
+    set(PLATFORM_NAME "Linux")
+endif()
+
 # Qt设置
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -13,6 +25,9 @@ set(CMAKE_AUTOUIC ON)
 
 # 查找Qt包
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets Sql)
+
+# 查找OpenGL（跨平台）
+find_package(OpenGL REQUIRED)
 
 # 输出路径设置
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -183,7 +198,7 @@ add_executable(${PROJECT_NAME}
     # ${RESOURCES}
 )
 
-# 链接Qt库
+# 链接Qt库和平台相关库
 target_link_libraries(${PROJECT_NAME}
     Qt6::Core
     Qt6::Gui
@@ -191,8 +206,18 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::OpenGL
     Qt6::OpenGLWidgets
     Qt6::Sql
-    opengl32
+    OpenGL::GL
 )
+
+# 平台特定链接库
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} opengl32)
+elseif(APPLE)
+    # macOS使用框架
+    find_library(COCOA_LIBRARY Cocoa)
+    find_library(IOKIT_LIBRARY IOKit)
+    target_link_libraries(${PROJECT_NAME} ${COCOA_LIBRARY} ${IOKIT_LIBRARY})
+endif()
 
 # 复制资源文件到build目录
 foreach(RESOURCE_FILE ${RESOURCE_FILES})
@@ -228,6 +253,32 @@ if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         WIN32_EXECUTABLE ON
     )
+    # Windows下复制Qt DLL到输出目录（可选，用于发布）
+    # add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    #     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    #     $<TARGET_FILE:Qt6::Core>
+    #     $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    # )
+endif()
+
+# macOS平台设置
+if(APPLE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        MACOSX_BUNDLE ON
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.fruitcrush.game"
+        MACOSX_BUNDLE_BUNDLE_NAME "FruitCrush"
+        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+    )
+endif()
+
+# Linux平台设置
+if(UNIX AND NOT APPLE)
+    # 设置RPATH以便找到共享库
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        INSTALL_RPATH "$ORIGIN/../lib"
+        BUILD_WITH_INSTALL_RPATH TRUE
+    )
 endif()
 
 # 测试支持
@@ -243,4 +294,19 @@ install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
+    BUNDLE DESTINATION .
 )
+
+# 安装资源文件
+install(DIRECTORY resources/ DESTINATION bin/resources)
+
+# 打印构建信息
+message(STATUS "")
+message(STATUS "=== FruitCrush Build Configuration ===")
+message(STATUS "Platform: ${PLATFORM_NAME}")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "Qt6 Version: ${Qt6_VERSION}")
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "======================================")
+message(STATUS "")
