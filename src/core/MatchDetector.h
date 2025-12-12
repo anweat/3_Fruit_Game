@@ -46,6 +46,19 @@ public:
     bool hasPossibleMoves(const std::vector<std::vector<Fruit>>& map);
     
 private:
+
+    /**
+     * @brief 检测指定位置周围的匹配（指定水果类型）
+     * @param map 游戏地图引用
+     * @param row 行坐标
+     * @param col 列坐标
+     * @param type 水果类型
+     * @return 该位置的匹配结果列表
+     */
+    std::vector<MatchResult> detectTypeMatchesAt(const std::vector<std::vector<Fruit>>& map,
+                                                 int row, int col,
+                                                 FruitType type);
+
     /**
      * @brief 检测横向匹配
      * @param map 游戏地图引用
@@ -92,6 +105,9 @@ private:
      */
     bool wouldMatchAfterSwap(const std::vector<std::vector<Fruit>>& map,
                             int row1, int col1, int row2, int col2);
+
+    // 对地图绑定一个可交换位置缓存以优化性能（TODO）
+    std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> possibleSwapCache_;
 };
 
 #endif // MATCHDETECTOR_H
