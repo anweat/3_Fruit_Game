@@ -30,30 +30,29 @@ std::vector<MatchResult> MatchDetector::detectMatches(const std::vector<std::vec
     return results;
 }
 
-std::vector<MatchResult> MatchDetector::detectMatchesAt(const std::vector<std::vector<Fruit>>& map,
-                                                         int row, int col) {
+std::vector<MatchResult> MatchDetector::detectTypeMatchesAt(const std::vector<std::vector<Fruit>>& map,
+                                                 int row, int col,
+                                                 FruitType type) {
     std::vector<MatchResult> results;
     
     // CANDY 类型不参与普通三消匹配
-    if (!isValidPosition(row, col) || !isMatchableFruit(map[row][col].type)) {
+    if (!isValidPosition(row, col) || !isMatchableFruit(type)) {
         return results;
     }
     
-    FruitType targetType = map[row][col].type;
-    
-    // 检测横向匹配（CANDY 不参与）
+    // 检测横向匹配
     int leftCount = 0, rightCount = 0;
-    for (int c = col - 1; c >= 0 && isMatchableFruit(map[row][c].type) && map[row][c].type == targetType; c--) {
+    for (int c = col - 1; c >= 0 && isMatchableFruit(map[row][c].type) && map[row][c].type == type; c--) {
         leftCount++;
     }
-    for (int c = col + 1; c < MAP_SIZE && isMatchableFruit(map[row][c].type) && map[row][c].type == targetType; c++) {
+    for (int c = col + 1; c < MAP_SIZE && isMatchableFruit(map[row][c].type) && map[row][c].type == type; c++) {
         rightCount++;
     }
     
     int horizontalTotal = leftCount + rightCount + 1;
     if (horizontalTotal >= 3) {
         MatchResult match;
-        match.fruitType = targetType;
+        match.fruitType = type;
         match.direction = MatchDirection::HORIZONTAL;
         match.matchCount = horizontalTotal;
         match.specialPosition = {row, col};
@@ -66,19 +65,19 @@ std::vector<MatchResult> MatchDetector::detectMatchesAt(const std::vector<std::v
         results.push_back(match);
     }
     
-    // 检测纵向匹配（CANDY 不参与）
+    // 检测纵向匹配
     int upCount = 0, downCount = 0;
-    for (int r = row - 1; r >= 0 && isMatchableFruit(map[r][col].type) && map[r][col].type == targetType; r--) {
+    for (int r = row - 1; r >= 0 && isMatchableFruit(map[r][col].type) && map[r][col].type == type; r--) {
         upCount++;
     }
-    for (int r = row + 1; r < MAP_SIZE && isMatchableFruit(map[r][col].type) && map[r][col].type == targetType; r++) {
+    for (int r = row + 1; r < MAP_SIZE && isMatchableFruit(map[r][col].type) && map[r][col].type == type; r++) {
         downCount++;
     }
     
     int verticalTotal = upCount + downCount + 1;
     if (verticalTotal >= 3) {
         MatchResult match;
-        match.fruitType = targetType;
+        match.fruitType = type;
         match.direction = MatchDirection::VERTICAL;
         match.matchCount = verticalTotal;
         match.specialPosition = {row, col};
@@ -94,10 +93,16 @@ std::vector<MatchResult> MatchDetector::detectMatchesAt(const std::vector<std::v
     return results;
 }
 
+std::vector<MatchResult> MatchDetector::detectMatchesAt(const std::vector<std::vector<Fruit>>& map,
+                                                         int row, int col) {
+    return detectTypeMatchesAt(map, row, col, map[row][col].type);
+}
+
 bool MatchDetector::hasMatches(const std::vector<std::vector<Fruit>>& map) {
     return !detectMatches(map).empty();
 }
 
+//TODO: 优化性能，避免完全遍历，通过维护可能交换列表等方式提升效率
 bool MatchDetector::hasPossibleMoves(const std::vector<std::vector<Fruit>>& map) {
     // 遍历所有位置，尝试与相邻位置交换
     for (int row = 0; row < MAP_SIZE; row++) {
@@ -307,21 +312,13 @@ SpecialType MatchDetector::determineSpecialType(int count, MatchDirection direct
 
 bool MatchDetector::wouldMatchAfterSwap(const std::vector<std::vector<Fruit>>& map,
                                         int row1, int col1, int row2, int col2) {
-    // 创建临时地图副本
-    auto tempMap = map;
-    
-    // 交换两个位置的水果
-    std::swap(tempMap[row1][col1], tempMap[row2][col2]);
-    
-    // 更新位置坐标
-    tempMap[row1][col1].row = row1;
-    tempMap[row1][col1].col = col1;
-    tempMap[row2][col2].row = row2;
-    tempMap[row2][col2].col = col2;
-    
-    // 检查两个位置周围是否有匹配
-    auto matches1 = detectMatchesAt(tempMap, row1, col1);
-    auto matches2 = detectMatchesAt(tempMap, row2, col2);
+    // 优化版：只检测交换位置的水果类型,不用再复制整个地图
+
+    FruitType type1 = map[row1][col1].type;
+    FruitType type2 = map[row2][col2].type;
+
+    auto matches1 = detectTypeMatchesAt(map, row1, col1, type2);
+    auto matches2 = detectTypeMatchesAt(map, row2, col2, type1);
     
     return !matches1.empty() || !matches2.empty();
 }
