@@ -95,6 +95,7 @@ private:
     float progress_;                 ///< 当前阶段进度 0.0~1.0
     int currentRoundIndex_;          ///< 当前轮次索引
     bool swapSuccess_;               ///< 交换是否成功
+    bool phaseCompleted_;            ///< 阶段是否已完成（等待下一帧回调）
     
     std::function<void(AnimPhase)> onPhaseComplete_;  ///< 阶段完成回调
     

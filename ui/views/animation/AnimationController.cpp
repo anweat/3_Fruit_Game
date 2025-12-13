@@ -5,6 +5,7 @@ AnimationController::AnimationController()
     , progress_(0.0f)
     , currentRoundIndex_(-1)
     , swapSuccess_(false)
+    , phaseCompleted_(false)
 {
 }
 
@@ -18,6 +19,7 @@ void AnimationController::reset()
     progress_ = 0.0f;
     currentRoundIndex_ = -1;
     swapSuccess_ = false;
+    phaseCompleted_ = false;
 }
 
 void AnimationController::beginSwap(bool success)
@@ -25,6 +27,7 @@ void AnimationController::beginSwap(bool success)
     currentPhase_ = AnimPhase::SWAPPING;
     progress_ = 0.0f;
     swapSuccess_ = success;
+    phaseCompleted_ = false;
 }
 
 void AnimationController::beginElimination(int roundIndex)
@@ -32,6 +35,7 @@ void AnimationController::beginElimination(int roundIndex)
     currentPhase_ = AnimPhase::ELIMINATING;
     progress_ = 0.0f;
     currentRoundIndex_ = roundIndex;
+    phaseCompleted_ = false;
 }
 
 void AnimationController::beginFall(int roundIndex)
@@ -39,18 +43,32 @@ void AnimationController::beginFall(int roundIndex)
     currentPhase_ = AnimPhase::FALLING;
     progress_ = 0.0f;
     currentRoundIndex_ = roundIndex;
+    phaseCompleted_ = false;
 }
 
 void AnimationController::beginShuffle()
 {
     currentPhase_ = AnimPhase::SHUFFLING;
     progress_ = 0.0f;
+    phaseCompleted_ = false;
 }
 
 bool AnimationController::updateProgress()
 {
     if (currentPhase_ == AnimPhase::IDLE) {
         return false;
+    }
+    
+    // 如果上一帧已经完成，这一帧触发回调
+    if (phaseCompleted_) {
+        phaseCompleted_ = false;
+        
+        // 触发回调（这时最后一帧已经渲染完毕）
+        if (onPhaseComplete_) {
+            onPhaseComplete_(currentPhase_);
+        }
+        
+        return true;  // 阶段完成
     }
     
     const float frameTime = 16.0f;  // ~60 FPS
@@ -61,13 +79,8 @@ bool AnimationController::updateProgress()
     
     if (progress_ >= 1.0f) {
         progress_ = 1.0f;
-        
-        // 通知阶段完成
-        if (onPhaseComplete_) {
-            onPhaseComplete_(currentPhase_);
-        }
-        
-        return true;  // 阶段完成
+        phaseCompleted_ = true;  // 标记完成，但不立即回调
+        return false;  // 返回false，让这一帧还是渲染progress=1.0的画面
     }
     
     return false;  // 阶段继续
@@ -81,7 +94,7 @@ float AnimationController::getCurrentPhaseDuration() const
         case AnimPhase::ELIMINATING:
             return 220.0f;  // 220ms
         case AnimPhase::FALLING:
-            return 180.0f;  // 180ms
+            return 300.0f;  // 300ms (增加时长，确保下落动画完整)
         case AnimPhase::SHUFFLING:
             return 600.0f;  // 600ms
         case AnimPhase::IDLE:

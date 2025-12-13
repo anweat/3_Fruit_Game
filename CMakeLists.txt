@@ -48,6 +48,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/utils
     ${CMAKE_SOURCE_DIR}/ui
     ${CMAKE_SOURCE_DIR}/ui/views/animation
+    ${CMAKE_SOURCE_DIR}/ui/input
 )
 
 # 源文件
@@ -180,6 +181,20 @@ set(ANIMATION_VIEW_HEADERS
     ui/views/animation/ShuffleAnimationRenderer.h
 )
 
+# 输入处理系统（鼠标交互解耦）
+set(INPUT_SOURCES
+    ui/input/InputHandler.cpp
+    ui/input/NormalClickStrategy.cpp
+    ui/input/PropClickStrategy.cpp
+)
+
+set(INPUT_HEADERS
+    ui/input/InputHandler.h
+    ui/input/IClickStrategy.h
+    ui/input/NormalClickStrategy.h
+    ui/input/PropClickStrategy.h
+)
+
 # 旧的动画系统（保留用于其他模块）
 
 set(ANIMATION_SOURCES
@@ -230,6 +245,7 @@ add_executable(${PROJECT_NAME}
     ${UI_SOURCES} ${UI_HEADERS}
     ${UI_FORMS}
     ${ANIMATION_VIEW_SOURCES} ${ANIMATION_VIEW_HEADERS}
+    ${INPUT_SOURCES} ${INPUT_HEADERS}
     ${ANIMATION_SOURCES} ${ANIMATION_HEADERS}
     # ${RESOURCES}
 )
