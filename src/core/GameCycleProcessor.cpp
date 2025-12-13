@@ -216,3 +216,52 @@ void GameCycleProcessor::handleDeadlock(std::vector<std::vector<Fruit>>& map,
         outNewMap = map;
     }
 }
+
+/**
+ * @brief 处理道具触发的单次消除（不循环，只消除一轮）
+ */
+bool GameCycleProcessor::processPropElimination(std::vector<std::vector<Fruit>>& map,
+                                                 const std::set<std::pair<int, int>>& affectedPositions,
+                                                 GameRound& outRound,
+                                                 int& outScore) {
+    if (affectedPositions.empty()) {
+        return false;
+    }
+    
+    outScore = 0;
+    
+    // 1. 标记受影响的位置为待消除（跳过CANDY）
+    for (const auto& pos : affectedPositions) {
+        int row = pos.first;
+        int col = pos.second;
+        if (row >= 0 && row < MAP_SIZE && col >= 0 && col < MAP_SIZE) {
+            if (map[row][col].type != FruitType::CANDY && map[row][col].type != FruitType::EMPTY) {
+                map[row][col].isMatched = true;
+            }
+        }
+    }
+    
+    // 2. 触发特殊元素效果（如果道具击中了炸弹）
+    std::set<std::pair<int, int>> emptySpecialPositions;  // 道具模式不生成新的特殊元素
+    triggerSpecialEffects(map, emptySpecialPositions);
+    
+    // 3. 计算得分（道具模式不用连击）
+    std::vector<MatchResult> virtualMatches;
+    for (const auto& pos : affectedPositions) {
+        if (map[pos.first][pos.second].isMatched) {
+            MatchResult match;
+            match.positions.push_back(pos);
+            match.fruitType = map[pos.first][pos.second].type;
+            virtualMatches.push_back(match);
+        }
+    }
+    outScore = scoreCalculator_.calculateTotalScore(virtualMatches, 1);  // 无连击
+    
+    // 4. 记录并执行消除
+    animRecorder_.recordElimination(map, emptySpecialPositions, outRound.elimination);
+    
+    // 5. 处理下落和填充
+    animRecorder_.recordFallAndRefill(map, fruitGenerator_, outRound.fall);
+    
+    return true;
+}

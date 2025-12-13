@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 project(FruitCrush VERSION 1.0.0 LANGUAGES CXX)
 
+# 生成compile_commands.json供IDE使用
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # 设置C++标准
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -44,7 +47,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/data
     ${CMAKE_SOURCE_DIR}/src/utils
     ${CMAKE_SOURCE_DIR}/ui
-    ${CMAKE_SOURCE_DIR}/ui/animation
+    ${CMAKE_SOURCE_DIR}/ui/views/animation
 )
 
 # 源文件
@@ -156,6 +159,29 @@ set(UI_FORMS
     ui/MainWindow.ui
 )
 
+# GameView 动画系统（解耦后的新架构）
+set(ANIMATION_VIEW_SOURCES
+    ui/views/animation/AnimationController.cpp
+    ui/views/animation/SnapshotManager.cpp
+    ui/views/animation/IAnimationRenderer.cpp
+    ui/views/animation/SwapAnimationRenderer.cpp
+    ui/views/animation/EliminationAnimationRenderer.cpp
+    ui/views/animation/FallAnimationRenderer.cpp
+    ui/views/animation/ShuffleAnimationRenderer.cpp
+)
+
+set(ANIMATION_VIEW_HEADERS
+    ui/views/animation/AnimationController.h
+    ui/views/animation/SnapshotManager.h
+    ui/views/animation/IAnimationRenderer.h
+    ui/views/animation/SwapAnimationRenderer.h
+    ui/views/animation/EliminationAnimationRenderer.h
+    ui/views/animation/FallAnimationRenderer.h
+    ui/views/animation/ShuffleAnimationRenderer.h
+)
+
+# 旧的动画系统（保留用于其他模块）
+
 set(ANIMATION_SOURCES
     ui/animation/SwapEffect.cpp
     ui/animation/EliminateEffect.cpp
@@ -175,6 +201,9 @@ set(ANIMATION_HEADERS
 
 # 资源文件列表
 set(RESOURCE_FILES
+    resources/props/hammer.png
+    resources/props/clamp.png
+    resources/props/magic_wand.png
     resources/texture.png
     resources/textures/apple.png
     resources/textures/banana.png
@@ -200,6 +229,7 @@ add_executable(${PROJECT_NAME}
     ${UTILS_SOURCES} ${UTILS_HEADERS}
     ${UI_SOURCES} ${UI_HEADERS}
     ${UI_FORMS}
+    ${ANIMATION_VIEW_SOURCES} ${ANIMATION_VIEW_HEADERS}
     ${ANIMATION_SOURCES} ${ANIMATION_HEADERS}
     # ${RESOURCES}
 )
@@ -256,9 +286,10 @@ endforeach()
 
 # Windows平台设置
 if(WIN32)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        WIN32_EXECUTABLE ON
-    )
+    # 不设置WIN32_EXECUTABLE，使用控制台窗口以避免EntryPoint问题
+    # set_target_properties(${PROJECT_NAME} PROPERTIES
+    #     WIN32_EXECUTABLE ON
+    # )
     # Windows下复制Qt DLL到输出目录（可选，用于发布）
     # add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     #     COMMAND ${CMAKE_COMMAND} -E copy_if_different

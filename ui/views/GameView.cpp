@@ -66,6 +66,38 @@ void GameView::setGameEngine(GameEngine* engine)
 }
 
 /**
+ * @brief 设置点击模式（拿取道具）
+ */
+void GameView::setClickMode(ClickMode mode)
+{
+    // 如果已经有道具，先取消
+    if (propState_ != PropState::NONE) {
+        cancelProp();
+    }
+    
+    clickMode_ = mode;
+    
+    // 如果是道具模式，进入HOLDING状态
+    if (mode == ClickMode::PROP_HAMMER || 
+        mode == ClickMode::PROP_CLAMP || 
+        mode == ClickMode::PROP_MAGIC_WAND) {
+        propState_ = PropState::HOLDING;
+        heldPropType_ = mode;
+        setMouseTracking(true);  // 开启鼠标跟踪
+    } else {
+        propState_ = PropState::NONE;
+        heldPropType_ = ClickMode::NORMAL;
+        setMouseTracking(false);
+    }
+    
+    // 清除选中状态
+    hasSelection_ = false;
+    selectedRow_ = -1;
+    selectedCol_ = -1;
+    update();
+}
+
+/**
  * @brief 更新显示
  */
 void GameView::updateDisplay()
@@ -162,6 +194,11 @@ void GameView::paintGL()
     // 绘制选中框（仅在空闲状态）
     if (hasSelection_ && animPhase_ == AnimPhase::IDLE) {
         drawSelection();
+    }
+    
+    // 绘制道具选中框（在空闲状态且持有道具时）
+    if (animPhase_ == AnimPhase::IDLE && propState_ != PropState::NONE) {
+        drawPropSelection();
     }
 }
 
@@ -702,51 +739,19 @@ void GameView::mousePressEvent(QMouseEvent *event)
     int row, col;
     if (screenToGrid(static_cast<int>(event->position().x()), 
                      static_cast<int>(event->position().y()), row, col)) {
-        if (!hasSelection_) {
-            // 第一次点击，选中水果
-            selectedRow_ = row;
-            selectedCol_ = col;
-            hasSelection_ = true;
-            qDebug() << "Selected:" << row << "," << col;
+        // 根据当前模式分发处理
+        if (clickMode_ == ClickMode::NORMAL) {
+            handleNormalClick(row, col);
         } else {
-            // 第二次点击
-            if (row == selectedRow_ && col == selectedCol_) {
-                // 点击同一个，取消选中
-                hasSelection_ = false;
-                qDebug() << "Deselected";
-            } else if (std::abs(row - selectedRow_) + std::abs(col - selectedCol_) == 1) {
-                // 相邻元素触发交换
-                qDebug() << "Trying to swap (" << selectedRow_ << "," << selectedCol_ 
-                         << ") with (" << row << "," << col << ")";
-                
-                // 在交换前保存地图快照和两个格子的水果
-                saveMapSnapshot();
-                swapFruit1_ = mapSnapshot_[selectedRow_][selectedCol_];
-                swapFruit2_ = mapSnapshot_[row][col];
-                
-                bool success = gameEngine_->swapFruits(selectedRow_, selectedCol_, row, col);
-                
-                // 开始交换动画
-                beginSwapAnimation(success);
-                hasSelection_ = false;
-                
-                if (success) {
-                    qDebug() << "Swap successful! Score:" << gameEngine_->getCurrentScore();
-                } else {
-                    qDebug() << "Swap failed, deselect";
-                }
-            } else {
-                // 不相邻：切换选中目标
-                selectedRow_ = row;
-                selectedCol_ = col;
-                hasSelection_ = true;
-                qDebug() << "Change selection to:" << row << "," << col;
-            }
+            handlePropClick(row, col);
         }
     } else {
-        // 点击网格外，取消选中
-        hasSelection_ = false;
-        qDebug() << "Clicked outside grid, deselected";
+        // 点击网格外，取消选中或道具
+        if (propState_ != PropState::NONE) {
+            cancelProp();
+        } else {
+            hasSelection_ = false;
+        }
     }
     
     update();
@@ -758,6 +763,91 @@ void GameView::mousePressEvent(QMouseEvent *event)
 void GameView::mouseReleaseEvent(QMouseEvent *event)
 {
     Q_UNUSED(event);
+}
+
+/**
+ * @brief 处理普通交换模式的点击
+ */
+void GameView::handleNormalClick(int row, int col)
+{
+    if (!hasSelection_) {
+        // 第一次点击，选中水果
+        selectedRow_ = row;
+        selectedCol_ = col;
+        hasSelection_ = true;
+    } else {
+        // 第二次点击
+        if (row == selectedRow_ && col == selectedCol_) {
+            // 点击同一个，取消选中
+            hasSelection_ = false;
+        } else if (std::abs(row - selectedRow_) + std::abs(col - selectedCol_) == 1) {
+            // 相邻元素触发交换
+            
+            // 在交换前保存地图快照和两个格子的水果
+            saveMapSnapshot();
+            swapFruit1_ = mapSnapshot_[selectedRow_][selectedCol_];
+            swapFruit2_ = mapSnapshot_[row][col];
+            
+            bool success = gameEngine_->swapFruits(selectedRow_, selectedCol_, row, col);
+            
+            // 开始交换动画
+            beginSwapAnimation(success);
+            hasSelection_ = false;
+        } else {
+            // 不相邻：切换选中目标
+            selectedRow_ = row;
+            selectedCol_ = col;
+            hasSelection_ = true;
+        }
+    }
+}
+
+/**
+ * @brief 处理道具模式的点击
+ */
+void GameView::handlePropClick(int row, int col)
+{
+    // 状态机处理
+    switch (propState_) {
+        case PropState::HOLDING:
+            // 持有道具状态，第一次点击：选中目标
+            if (heldPropType_ == ClickMode::PROP_CLAMP) {
+                // 夹子需要选中第一个目标
+                propTargetRow1_ = row;
+                propTargetCol1_ = col;
+                propState_ = PropState::FIRST_SELECTED;
+            } else {
+                // 锤子和魔法棒只需要一个目标
+                propTargetRow1_ = row;
+                propTargetCol1_ = col;
+                propState_ = PropState::READY;
+                // 立即释放
+                releaseProp();
+            }
+            break;
+            
+        case PropState::FIRST_SELECTED:
+            // 已选中第一个目标（仅夹子），第二次点击：选中第二个目标
+            if (row == propTargetRow1_ && col == propTargetCol1_) {
+                // 点击同一个位置，取消选中
+                propState_ = PropState::HOLDING;
+                propTargetRow1_ = -1;
+                propTargetCol1_ = -1;
+            } else {
+                // 选中第二个目标
+                propTargetRow2_ = row;
+                propTargetCol2_ = col;
+                propState_ = PropState::READY;
+                // 立即释放
+                releaseProp();
+            }
+            break;
+            
+        default:
+            break;
+    }
+    
+    update();
 }
 
 /**
@@ -1190,6 +1280,141 @@ void GameView::drawShuffleAnimation()
                     fruitTextures_[textureIndex]->release();
                 }
             }
+        }
+    }
+}
+
+/**
+ * @brief 释放道具效果
+ */
+void GameView::releaseProp()
+{
+    if (!gameEngine_) {
+        return;
+    }
+    
+    bool success = false;
+    
+    // 根据道具类型调用不同的接口
+    if (heldPropType_ == ClickMode::PROP_CLAMP) {
+        // 夹子：使用专用的强制交换接口
+        if (propTargetRow1_ >= 0 && propTargetRow2_ >= 0) {
+            // 保存快照
+            saveMapSnapshot();
+            swapFruit1_ = mapSnapshot_[propTargetRow1_][propTargetCol1_];
+            swapFruit2_ = mapSnapshot_[propTargetRow2_][propTargetCol2_];
+            
+            // 调用夹子专用接口
+            success = gameEngine_->useClampProp(propTargetRow1_, propTargetCol1_,
+                                                 propTargetRow2_, propTargetCol2_);
+            
+            if (success) {
+                // 开始交换动画
+                beginSwapAnimation(true);
+            }
+        }
+    } else {
+        // 锤子或魔法棒：单个目标
+        // 关键修复：先保存快照，再调用引擎
+        saveMapSnapshot();
+        
+        success = gameEngine_->useProp(heldPropType_, propTargetRow1_, propTargetCol1_);
+        
+        if (success) {
+            // 开始动画
+            const auto& seq = gameEngine_->getLastAnimation();
+            if (!seq.rounds.empty()) {
+                // 开始第 0 轮消除动画
+                beginEliminationStep(0);
+            }
+        }
+    }
+    
+    // 释放后重置状态
+    cancelProp();
+}
+
+/**
+ * @brief 取消道具使用
+ */
+void GameView::cancelProp()
+{
+    propState_ = PropState::NONE;
+    heldPropType_ = ClickMode::NORMAL;
+    clickMode_ = ClickMode::NORMAL;
+    propTargetRow1_ = -1;
+    propTargetCol1_ = -1;
+    propTargetRow2_ = -1;
+    propTargetCol2_ = -1;
+    setMouseTracking(false);
+    update();
+}
+
+/**
+ * @brief 鼠标移动事件（用于道具跟随）
+ */
+void GameView::mouseMoveEvent(QMouseEvent *event)
+{
+    if (propState_ == PropState::HOLDING) {
+        // 道具持有状态，重绘以显示跟随效果
+        update();
+    }
+}
+
+/**
+ * @brief 绘制道具选中框
+ */
+void GameView::drawPropSelection()
+{
+    glDisable(GL_TEXTURE_2D);
+    
+    // 绘制第一个选中框
+    if (propState_ == PropState::FIRST_SELECTED || propState_ == PropState::READY) {
+        if (propTargetRow1_ >= 0 && propTargetCol1_ >= 0) {
+            float x = gridStartX_ + propTargetCol1_ * cellSize_;
+            float y = gridStartY_ + propTargetRow1_ * cellSize_;
+            
+            // 根据道具类型选择颜色
+            if (heldPropType_ == ClickMode::PROP_HAMMER) {
+                glColor4f(0.55f, 0.27f, 0.07f, 0.6f);  // 棕色
+            } else if (heldPropType_ == ClickMode::PROP_CLAMP) {
+                glColor4f(0.25f, 0.41f, 0.88f, 0.6f);  // 蓝色
+            } else if (heldPropType_ == ClickMode::PROP_MAGIC_WAND) {
+                glColor4f(0.58f, 0.44f, 0.86f, 0.6f);  // 紫色
+            }
+            
+            // 绘制填充
+            drawQuad(x, y, cellSize_);
+            
+            // 绘制边框
+            glColor4f(1.0f, 1.0f, 0.0f, 0.9f);
+            glLineWidth(4.0f);
+            glBegin(GL_LINE_LOOP);
+                glVertex2f(x, y);
+                glVertex2f(x + cellSize_, y);
+                glVertex2f(x + cellSize_, y + cellSize_);
+                glVertex2f(x, y + cellSize_);
+            glEnd();
+        }
+    }
+    
+    // 绘制第二个选中框（仅夹子）
+    if (propState_ == PropState::READY && heldPropType_ == ClickMode::PROP_CLAMP) {
+        if (propTargetRow2_ >= 0 && propTargetCol2_ >= 0) {
+            float x = gridStartX_ + propTargetCol2_ * cellSize_;
+            float y = gridStartY_ + propTargetRow2_ * cellSize_;
+            
+            glColor4f(0.25f, 0.41f, 0.88f, 0.6f);  // 蓝色
+            drawQuad(x, y, cellSize_);
+            
+            glColor4f(1.0f, 1.0f, 0.0f, 0.9f);
+            glLineWidth(4.0f);
+            glBegin(GL_LINE_LOOP);
+                glVertex2f(x, y);
+                glVertex2f(x + cellSize_, y);
+                glVertex2f(x + cellSize_, y + cellSize_);
+                glVertex2f(x, y + cellSize_);
+            glEnd();
         }
     }
 }

@@ -4,7 +4,7 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLTexture>
 #include <vector>
-#include "FruitTypes.h"
+#include "core/FruitTypes.h"
 #include "GameEngine.h"  // for BombEffectType
 
 /**

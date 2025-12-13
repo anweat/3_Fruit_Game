@@ -11,8 +11,19 @@
 #include "SwapHandler.h"
 #include "AnimationRecorder.h"
 #include "GameCycleProcessor.h"
+#include "../props/PropManager.h"
 #include <set>
 #include <vector>
+
+/**
+ * @brief 点击模式枚举（与 GameView 中的定义保持一致）
+ */
+enum class ClickMode {
+    NORMAL,         ///< 普通交换模式
+    PROP_HAMMER,    ///< 锤子道具模式
+    PROP_CLAMP,     ///< 夹子道具模式
+    PROP_MAGIC_WAND ///< 魔法棒道具模式
+};
 
 /**
  * @brief 单次交换步骤信息（用于动画与成就统计）
@@ -202,6 +213,30 @@ public:
      */
     void resetGame();
     
+    /**
+     * @brief 获取道具管理器
+     */
+    PropManager& getPropManager() { return propManager_; }
+    
+    /**
+     * @brief 使用道具
+     * @param mode 点击模式（决定使用哪种道具）
+     * @param row 目标行
+     * @param col 目标列
+     * @return 是否成功使用
+     */
+    bool useProp(ClickMode mode, int row, int col);
+    
+    /**
+     * @brief 使用夹子道具（强制交换两个相邻元素）
+     * @param row1 第一个元素的行
+     * @param col1 第一个元素的列
+     * @param row2 第二个元素的行
+     * @param col2 第二个元素的列
+     * @return 是否成功使用
+     */
+    bool useClampProp(int row1, int col1, int row2, int col2);
+    
 private:
     // 基础子系统
     FruitGenerator fruitGenerator_;              ///< 水果生成器
@@ -215,6 +250,7 @@ private:
     SwapHandler swapHandler_;                    ///< 交换处理器
     AnimationRecorder animRecorder_;             ///< 动画记录器
     GameCycleProcessor cycleProcessor_;          ///< 循环处理器
+    PropManager propManager_;                    ///< 道具管理器
     
     // 游戏数据
     std::vector<std::vector<Fruit>> map_;        ///< 游戏地图 (8×8)
