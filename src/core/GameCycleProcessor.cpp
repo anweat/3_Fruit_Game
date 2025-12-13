@@ -228,8 +228,6 @@ bool GameCycleProcessor::processPropElimination(std::vector<std::vector<Fruit>>&
         return false;
     }
     
-    outScore = 0;
-    
     // 1. 标记受影响的位置为待消除（跳过CANDY）
     for (const auto& pos : affectedPositions) {
         int row = pos.first;

@@ -17,8 +17,27 @@ bool SpecialEffectProcessor::triggerSpecialEffect(
     int row, int col,
     std::set<std::pair<int, int>>& affectedPositions) {
     
+    // 使用一个集合来追踪已经触发过的特殊元素位置，防止无限递归
+    std::set<std::pair<int, int>> triggeredSpecials;
+    return triggerSpecialEffectInternal(map, row, col, affectedPositions, triggeredSpecials);
+}
+
+/**
+ * @brief 内部递归函数，带有已触发特殊元素的追踪
+ */
+bool SpecialEffectProcessor::triggerSpecialEffectInternal(
+    std::vector<std::vector<Fruit>>& map,
+    int row, int col,
+    std::set<std::pair<int, int>>& affectedPositions,
+    std::set<std::pair<int, int>>& triggeredSpecials) {
+    
     if (!isValidPosition(row, col)) {
         return false;
+    }
+    
+    // 检查是否已经触发过这个位置的特殊元素
+    if (triggeredSpecials.count({row, col}) > 0) {
+        return false;  // 已经触发过，避免死循环
     }
     
     SpecialType specialType = map[row][col].special;
@@ -26,6 +45,9 @@ bool SpecialEffectProcessor::triggerSpecialEffect(
     if (specialType == SpecialType::NONE) {
         return false;  // 不是特殊元素
     }
+    
+    // 标记当前位置为已触发
+    triggeredSpecials.insert({row, col});
     
     // 存储本次效果影响的位置
     std::set<std::pair<int, int>> currentAffected;
@@ -56,13 +78,13 @@ bool SpecialEffectProcessor::triggerSpecialEffect(
         int r = pos.first;
         int c = pos.second;
         
-        // 如果该位置有特殊元素且还未被处理
+        // 如果该位置有特殊元素且还未被触发过
         if (isValidPosition(r, c) && 
             map[r][c].special != SpecialType::NONE && 
-            (r != row || c != col)) {  // 不重复触发自己
+            triggeredSpecials.count({r, c}) == 0) {
             
             // 递归触发该特殊元素的效果
-            triggerSpecialEffect(map, r, c, affectedPositions);
+            triggerSpecialEffectInternal(map, r, c, affectedPositions, triggeredSpecials);
         }
     }
     

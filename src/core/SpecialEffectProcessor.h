@@ -90,6 +90,14 @@ public:
     
 private:
     /**
+     * @brief 内部递归函数，带有已触发特殊元素的追踪，防止无限递归
+     */
+    bool triggerSpecialEffectInternal(std::vector<std::vector<Fruit>>& map,
+                                      int row, int col,
+                                      std::set<std::pair<int, int>>& affectedPositions,
+                                      std::set<std::pair<int, int>>& triggeredSpecials);
+    
+    /**
      * @brief 直线炸弹（横向）效果 - 消除整行
      */
     void effectLineH(std::vector<std::vector<Fruit>>& map,
