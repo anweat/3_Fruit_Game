@@ -10,6 +10,7 @@
 #include <array>
 #include <set>
 #include <memory>
+#include <functional>
 #include "GameEngine.h"
 
 /**
@@ -21,6 +22,16 @@ enum class AnimPhase {
     ELIMINATING,    ///< 消除动画中
     FALLING,        ///< 下落+新生成入场动画中
     SHUFFLING       ///< 死局重排动画中
+};
+
+/**
+ * @brief 道具交互状态
+ */
+enum class PropState {
+    NONE,           ///< 无道具状态
+    HOLDING,        ///< 持有道具，跟随鼠标
+    FIRST_SELECTED, ///< 已选中第一个目标（仅夹子使用）
+    READY           ///< 准备释放（已选定所有目标）
 };
 
 /**
@@ -38,6 +49,18 @@ public:
     
     void setGameEngine(GameEngine* engine);
     void updateDisplay();
+    
+    /**
+     * @brief 设置点击模式
+     * @param mode 点击模式
+     */
+    void setClickMode(ClickMode mode);
+    
+    /**
+     * @brief 获取当前点击模式
+     * @return 当前模式
+     */
+    ClickMode getClickMode() const { return clickMode_; }
 
 protected:
     void initializeGL() override;
@@ -45,6 +68,7 @@ protected:
     void paintGL() override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
 private slots:
     void onAnimationTimer();
@@ -56,6 +80,19 @@ private:
     void drawFruit(int row, int col, const Fruit& fruit, float offsetX = 0.0f, float offsetY = 0.0f);
     void drawSelection();
     bool screenToGrid(int x, int y, int& row, int& col);
+    
+    // ========== 点击事件处理策略 ==========
+    /// 处理普通交换模式点击
+    void handleNormalClick(int row, int col);
+    /// 处理道具模式点击
+    void handlePropClick(int row, int col);
+    
+    /// 释放道具效果
+    void releaseProp();
+    /// 取消道具使用
+    void cancelProp();
+    /// 绘制道具选中框
+    void drawPropSelection();
     
     // ========== 渲染各层 ==========
     void drawFruitGrid();           ///< 静态水果层（隐藏 hiddenCells_）
@@ -118,6 +155,17 @@ private:
     int selectedRow_;
     int selectedCol_;
     bool hasSelection_;
+    
+    // 点击模式
+    ClickMode clickMode_ = ClickMode::NORMAL;
+    
+    // 道具交互状态
+    PropState propState_ = PropState::NONE;         ///< 当前道具状态
+    ClickMode heldPropType_ = ClickMode::NORMAL;    ///< 持有的道具类型
+    int propTargetRow1_ = -1;                        ///< 道具目标位置1(行)
+    int propTargetCol1_ = -1;                        ///< 道具目标位置1(列)
+    int propTargetRow2_ = -1;                        ///< 道具目标位置2(行)，仅夹子使用
+    int propTargetCol2_ = -1;                        ///< 道具目标位置2(列)，仅夹子使用
     
     // 动画定时器 & 帧计数
     QTimer* animationTimer_;

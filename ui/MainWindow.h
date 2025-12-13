@@ -58,6 +58,26 @@ private slots:
      * @brief 显示成就页面
      */
     void showAchievements();
+    
+    /**
+     * @brief 道具按钮点击 - 锤子
+     */
+    void onHammerClicked();
+    
+    /**
+     * @brief 道具按钮点击 - 夹子
+     */
+    void onClampClicked();
+    
+    /**
+     * @brief 道具按钮点击 - 魔法棒
+     */
+    void onMagicWandClicked();
+    
+    /**
+     * @brief 更新道具数量显示
+     */
+    void updatePropCounts();
 
 private:
     Ui::MainWindow *ui;
@@ -75,6 +95,14 @@ private:
     GameView* gameView_;
     QWidget* gameViewWidget_;
     QLabel* scoreLabel_;  // 分数标签
+    
+    // 道具按钮
+    QPushButton* hammerButton_;     // 锤子按钮
+    QPushButton* clampButton_;      // 夹子按钮
+    QPushButton* magicWandButton_;  // 魔法棒按钮
+    QLabel* hammerCountLabel_;      // 锤子数量标签
+    QLabel* clampCountLabel_;       // 夹子数量标签
+    QLabel* magicWandCountLabel_;   // 魔法棒数量标签
     
     /**
      * @brief 初始化UI组件

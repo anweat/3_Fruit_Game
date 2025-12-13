@@ -21,6 +21,12 @@ MainWindow::MainWindow(QWidget *parent)
     , gameView_(nullptr)
     , gameViewWidget_(nullptr)
     , scoreLabel_(nullptr)
+    , hammerButton_(nullptr)
+    , clampButton_(nullptr)
+    , magicWandButton_(nullptr)
+    , hammerCountLabel_(nullptr)
+    , clampCountLabel_(nullptr)
+    , magicWandCountLabel_(nullptr)
 {
     ui->setupUi(this);
     setupUi();
@@ -293,7 +299,8 @@ void MainWindow::createGameViewWidget()
 {
     gameViewWidget_ = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(gameViewWidget_);
-    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setContentsMargins(10, 10, 10, 10);
+    layout->setSpacing(10);
     
     // 创建OpenGL游戏视图
     gameView_ = new GameView(gameViewWidget_);
@@ -301,6 +308,7 @@ void MainWindow::createGameViewWidget()
     
     // 添加底部控制栏
     QHBoxLayout* controlLayout = new QHBoxLayout();
+    controlLayout->setSpacing(15);
     
     // 分数显示
     scoreLabel_ = new QLabel("💯 分数: 0 | 🔥 连击: 0");
@@ -308,6 +316,103 @@ void MainWindow::createGameViewWidget()
     controlLayout->addWidget(scoreLabel_);
     
     controlLayout->addStretch();
+    
+    // 道具栏标签
+    QLabel* propLabel = new QLabel("🎮 道具:");
+    propLabel->setStyleSheet("QLabel { font-size: 14px; font-weight: bold; padding: 5px; }");
+    controlLayout->addWidget(propLabel);
+    
+    // 锤子道具
+    QVBoxLayout* hammerLayout = new QVBoxLayout();
+    hammerLayout->setSpacing(2);
+    hammerButton_ = new QPushButton();
+    hammerButton_->setIcon(QIcon("resources/props/hammer.png"));
+    hammerButton_->setIconSize(QSize(48, 48));
+    hammerButton_->setFixedSize(60, 60);
+    hammerButton_->setToolTip("🔨 锤子 - 消除单个水果");
+    hammerButton_->setStyleSheet(
+        "QPushButton { "
+        "  border: 2px solid #8B4513; "
+        "  border-radius: 8px; "
+        "  background-color: #FFF8DC; "
+        "} "
+        "QPushButton:hover { "
+        "  background-color: #FFE4B5; "
+        "  border: 3px solid #A0522D; "
+        "} "
+        "QPushButton:pressed { "
+        "  background-color: #DEB887; "
+        "}"
+    );
+    connect(hammerButton_, &QPushButton::clicked, this, &MainWindow::onHammerClicked);
+    hammerCountLabel_ = new QLabel("x 3");
+    hammerCountLabel_->setAlignment(Qt::AlignCenter);
+    hammerCountLabel_->setStyleSheet("QLabel { font-size: 12px; font-weight: bold; }");
+    hammerLayout->addWidget(hammerButton_);
+    hammerLayout->addWidget(hammerCountLabel_);
+    controlLayout->addLayout(hammerLayout);
+    
+    // 夹子道具
+    QVBoxLayout* clampLayout = new QVBoxLayout();
+    clampLayout->setSpacing(2);
+    clampButton_ = new QPushButton();
+    clampButton_->setIcon(QIcon("resources/props/clamp.png"));
+    clampButton_->setIconSize(QSize(48, 48));
+    clampButton_->setFixedSize(60, 60);
+    clampButton_->setToolTip("✂️ 夹子 - 强制交换相邻水果");
+    clampButton_->setStyleSheet(
+        "QPushButton { "
+        "  border: 2px solid #4169E1; "
+        "  border-radius: 8px; "
+        "  background-color: #F0F8FF; "
+        "} "
+        "QPushButton:hover { "
+        "  background-color: #E6F3FF; "
+        "  border: 3px solid #1E90FF; "
+        "} "
+        "QPushButton:pressed { "
+        "  background-color: #ADD8E6; "
+        "}"
+    );
+    connect(clampButton_, &QPushButton::clicked, this, &MainWindow::onClampClicked);
+    clampCountLabel_ = new QLabel("x 3");
+    clampCountLabel_->setAlignment(Qt::AlignCenter);
+    clampCountLabel_->setStyleSheet("QLabel { font-size: 12px; font-weight: bold; }");
+    clampLayout->addWidget(clampButton_);
+    clampLayout->addWidget(clampCountLabel_);
+    controlLayout->addLayout(clampLayout);
+    
+    // 魔法棒道具
+    QVBoxLayout* wandLayout = new QVBoxLayout();
+    wandLayout->setSpacing(2);
+    magicWandButton_ = new QPushButton();
+    magicWandButton_->setIcon(QIcon("resources/props/magic_wand.png"));
+    magicWandButton_->setIconSize(QSize(48, 48));
+    magicWandButton_->setFixedSize(60, 60);
+    magicWandButton_->setToolTip("✨ 魔法棒 - 消除所有同类型水果");
+    magicWandButton_->setStyleSheet(
+        "QPushButton { "
+        "  border: 2px solid #9370DB; "
+        "  border-radius: 8px; "
+        "  background-color: #F8F0FF; "
+        "} "
+        "QPushButton:hover { "
+        "  background-color: #F0E6FF; "
+        "  border: 3px solid #8A2BE2; "
+        "} "
+        "QPushButton:pressed { "
+        "  background-color: #DDA0DD; "
+        "}"
+    );
+    connect(magicWandButton_, &QPushButton::clicked, this, &MainWindow::onMagicWandClicked);
+    magicWandCountLabel_ = new QLabel("x 3");
+    magicWandCountLabel_->setAlignment(Qt::AlignCenter);
+    magicWandCountLabel_->setStyleSheet("QLabel { font-size: 12px; font-weight: bold; }");
+    wandLayout->addWidget(magicWandButton_);
+    wandLayout->addWidget(magicWandCountLabel_);
+    controlLayout->addLayout(wandLayout);
+    
+    controlLayout->addSpacing(20);
     
     // 返回按钮
     QPushButton* backButton = new QPushButton("返回主菜单");
@@ -317,16 +422,105 @@ void MainWindow::createGameViewWidget()
     
     layout->addLayout(controlLayout);
     
-    // 创建定时器更新分数
-    QTimer* scoreTimer = new QTimer(this);
-    connect(scoreTimer, &QTimer::timeout, this, [this]() {
+    // 创建定时器更新分数和道具数量
+    QTimer* updateTimer = new QTimer(this);
+    connect(updateTimer, &QTimer::timeout, this, [this]() {
         if (gameEngine_ && scoreLabel_) {
             int score = gameEngine_->getCurrentScore();
             int combo = gameEngine_->getComboCount();
             scoreLabel_->setText(QString("💯 分数: %1 | 🔥 连击: %2").arg(score).arg(combo));
+            updatePropCounts();
         }
     });
-    scoreTimer->start(100);  // 每100ms更新一次
+    updateTimer->start(100);  // 每100ms更新一次
     
-    qDebug() << "GameView widget created";
+    qDebug() << "GameView widget created with prop buttons";
+}
+
+/**
+ * @brief 锤子按钮点击事件
+ */
+void MainWindow::onHammerClicked()
+{
+    if (!gameEngine_ || !gameView_) {
+        return;
+    }
+    
+    // 检查是否有锤子
+    if (!gameEngine_->getPropManager().hasProp(PropType::HAMMER)) {
+        // TODO: 显示提示：道具不足
+        return;
+    }
+    
+    // 拿取锤子
+    gameView_->setClickMode(ClickMode::PROP_HAMMER);
+}
+
+/**
+ * @brief 夹子按钮点击事件
+ */
+void MainWindow::onClampClicked()
+{
+    if (!gameEngine_ || !gameView_) {
+        return;
+    }
+    
+    // 检查是否有夹子
+    if (!gameEngine_->getPropManager().hasProp(PropType::CLAMP)) {
+        // TODO: 显示提示：道具不足
+        return;
+    }
+    
+    // 拿取夹子
+    gameView_->setClickMode(ClickMode::PROP_CLAMP);
+}
+
+/**
+ * @brief 魔法棒按钮点击事件
+ */
+void MainWindow::onMagicWandClicked()
+{
+    if (!gameEngine_ || !gameView_) {
+        return;
+    }
+    
+    // 检查是否有魔法棒
+    if (!gameEngine_->getPropManager().hasProp(PropType::MAGIC_WAND)) {
+        // TODO: 显示提示：道具不足
+        return;
+    }
+    
+    // 拿取魔法棒
+    gameView_->setClickMode(ClickMode::PROP_MAGIC_WAND);
+}
+
+/**
+ * @brief 更新道具数量显示
+ */
+void MainWindow::updatePropCounts()
+{
+    if (!gameEngine_) {
+        return;
+    }
+    
+    PropManager& propManager = gameEngine_->getPropManager();
+    
+    // 更新数量标签
+    if (hammerCountLabel_) {
+        int count = propManager.getPropCount(PropType::HAMMER);
+        hammerCountLabel_->setText(QString("x %1").arg(count));
+        hammerButton_->setEnabled(count > 0);
+    }
+    
+    if (clampCountLabel_) {
+        int count = propManager.getPropCount(PropType::CLAMP);
+        clampCountLabel_->setText(QString("x %1").arg(count));
+        clampButton_->setEnabled(count > 0);
+    }
+    
+    if (magicWandCountLabel_) {
+        int count = propManager.getPropCount(PropType::MAGIC_WAND);
+        magicWandCountLabel_->setText(QString("x %1").arg(count));
+        magicWandButton_->setEnabled(count > 0);
+    }
 }
