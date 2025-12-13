@@ -88,6 +88,13 @@ void SnapshotManager::updateHiddenCells(const GameAnimationSequence& animSeq,
 {
     hiddenCells_.clear();
     
+    // 交换阶段：隐藏交换的两个格子
+    if (phase == AnimPhase::SWAPPING) {
+        hiddenCells_.insert({animSeq.swap.row1, animSeq.swap.col1});
+        hiddenCells_.insert({animSeq.swap.row2, animSeq.swap.col2});
+        return;
+    }
+    
     if (roundIndex < 0 || roundIndex >= static_cast<int>(animSeq.rounds.size())) {
         return;
     }

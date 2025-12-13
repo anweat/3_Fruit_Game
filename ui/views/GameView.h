@@ -12,20 +12,18 @@
 #include <memory>
 #include <functional>
 #include "GameEngine.h"
+#include "AnimationController.h"
+#include "SnapshotManager.h"
+#include "IAnimationRenderer.h"
+
+// 前向声明渲染器
+class SwapAnimationRenderer;
+class EliminationAnimationRenderer;
+class FallAnimationRenderer;
+class ShuffleAnimationRenderer;
 
 /**
- * @brief 视图动画阶段（严格按时序推进）
- */
-enum class AnimPhase {
-    IDLE,           ///< 空闲，等待玩家操作
-    SWAPPING,       ///< 交换动画中（成功或失败）
-    ELIMINATING,    ///< 消除动画中
-    FALLING,        ///< 下落+新生成入场动画中
-    SHUFFLING       ///< 死局重排动画中
-};
-
-/**
- * @brief 道具交互状态
+ * @brief 道具交互状态（注意：这是GameView内部使用的枚举，与InputHandler中的PropInteractionState不同）
  */
 enum class PropState {
     NONE,           ///< 无道具状态
@@ -94,102 +92,57 @@ private:
     /// 绘制道具选中框
     void drawPropSelection();
     
-    // ========== 渲染各层 ==========
-    void drawFruitGrid();           ///< 静态水果层（隐藏 hiddenCells_）
-    void drawSwapAnimation();       ///< 交换动画覆盖层
-    void drawEliminationAnimation();///< 消除动画覆盖层
-    void drawFallAnimation();       ///< 下落动画覆盖层
-    void drawBombEffects();         ///< 炸弹特效动画层
+    // ========== 渲染 ==========
+    void drawFruitGrid();           ///< 静态水果层
+    void renderCurrentAnimation();  ///< 当前动画阶段渲染分发器
     
-    // ========== 动画阶段控制函数 ==========
-    /// 开始交换动画（从 lastAnimation_.swap 初始化）
+    // ========== 动画阶段控制 ==========
+    /// 开始交换动画
     void beginSwapAnimation(bool success);
-    /// 更新交换动画进度，返回是否完成
-    bool updateSwapAnimation();
-    
-    /// 开始第 stepIndex 轮消除动画（使用 rounds[stepIndex].elimination）
+    /// 开始消除动画
     void beginEliminationStep(int roundIndex);
-    /// 更新消除动画进度，返回是否完成
-    bool updateEliminationAnimation();
-    
-    /// 开始第 stepIndex 轮下落动画（使用 rounds[stepIndex].fall）
+    /// 开始下落动画
     void beginFallStep(int roundIndex);
-    /// 更新下落动画进度，返回是否完成
-    bool updateFallAnimation();
-    
     /// 开始重排动画
     void beginShuffleAnimation();
-    /// 更新重排动画进度，返回是否完成
-    bool updateShuffleAnimation();
-    /// 绘制重排动画
-    void drawShuffleAnimation();
     
-    /// 计算当前轮消除+下落的列级隐藏范围
-    void computeColumnHiddenRanges();
+    /// 阶段完成回调
+    void handlePhaseComplete(AnimPhase phase);
     
-    /// 更新 hiddenCells_ 集合
-    void updateHiddenCells();
-    
-    /// 保存当前地图快照
-    void saveMapSnapshot();
-    
-    /// 根据消除消息更新快照（清空被消除的格子）
-    void applyEliminationToSnapshot(int roundIndex);
-    
-    /// 根据下落消息更新快照（移动元素+生成新元素）
-    void applyFallToSnapshot(int roundIndex);
-    
-    /// 检查 (row, col) 是否在当前隐藏范围内
-    bool isCellHidden(int row, int col) const;
-    
-    GameEngine* gameEngine_;                              ///< 游戏引擎
-    std::vector<std::vector<Fruit>> mapSnapshot_;          ///< 地图快照（动画期间使用）
-    std::vector<QOpenGLTexture*> fruitTextures_;          ///< 水果纹理数组
+    // ========== 引擎和基础 ==========
+    GameEngine* gameEngine_;
+    std::vector<QOpenGLTexture*> fruitTextures_;
     
     // 网格布局参数
     float gridStartX_;
     float gridStartY_;
     float cellSize_;
     
-    // 选中状态
-    int selectedRow_;
-    int selectedCol_;
-    bool hasSelection_;
-    
-    // 点击模式
-    ClickMode clickMode_ = ClickMode::NORMAL;
-    
-    // 道具交互状态
-    PropState propState_ = PropState::NONE;         ///< 当前道具状态
-    ClickMode heldPropType_ = ClickMode::NORMAL;    ///< 持有的道具类型
-    int propTargetRow1_ = -1;                        ///< 道具目标位置1(行)
-    int propTargetCol1_ = -1;                        ///< 道具目标位置1(列)
-    int propTargetRow2_ = -1;                        ///< 道具目标位置2(行)，仅夹子使用
-    int propTargetCol2_ = -1;                        ///< 道具目标位置2(列)，仅夹子使用
-    
     // 动画定时器 & 帧计数
     QTimer* animationTimer_;
     int animationFrame_;
     
-    // ========== 动画状态机 ==========
-    AnimPhase animPhase_ = AnimPhase::IDLE;              ///< 当前动画阶段
-    float animProgress_ = 0.0f;                          ///< 当前阶段进度 0~1
-    bool swapSuccess_ = false;                           ///< 当前交换是否成功
+    // ========== 动画系统（解耦组件）==========
+    AnimationController* animController_;       ///< 动画状态机控制器
+    SnapshotManager* snapshotManager_;          ///< 快照管理器
+    SwapAnimationRenderer* swapRenderer_;       ///< 交换动画渲染器
+    EliminationAnimationRenderer* eliminationRenderer_; ///< 消除动画渲染器
+    FallAnimationRenderer* fallRenderer_;       ///< 下落动画渲染器
+    ShuffleAnimationRenderer* shuffleRenderer_; ///< 重排动画渲染器
     
-    // 交换动画参数
-    int swapRow1_ = -1;
-    int swapCol1_ = -1;
-    int swapRow2_ = -1;
-    int swapCol2_ = -1;
-    Fruit swapFruit1_;                                   ///< 交换前第一个格子的水果
-    Fruit swapFruit2_;                                   ///< 交换前第二个格子的水果
+    // ========== 选中和道具状态 ==========
+    int selectedRow_;
+    int selectedCol_;
+    bool hasSelection_;
     
-    // 轮次动画索引（rounds[currentRoundIndex_] 包含消除+下落）
-    int currentRoundIndex_ = -1;
+    ClickMode clickMode_ = ClickMode::NORMAL;
     
-    // ========== 隐藏格子集合 ==========
-    // 在动画期间，这些格子的静态层不绘制，由动画层负责
-    std::set<std::pair<int, int>> hiddenCells_;
+    PropState propState_ = PropState::NONE;
+    ClickMode heldPropType_ = ClickMode::NORMAL;
+    int propTargetRow1_ = -1;
+    int propTargetCol1_ = -1;
+    int propTargetRow2_ = -1;
+    int propTargetCol2_ = -1;
 };
 
 #endif // GAMEVIEW_H
