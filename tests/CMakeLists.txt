@@ -11,6 +11,9 @@ set(CORE_SOURCES_FOR_TEST
     ../src/core/ScoreCalculator.cpp
     ../src/core/SpecialFruitGenerator.cpp
     ../src/core/SpecialEffectProcessor.cpp
+    ../src/core/SwapHandler.cpp
+    ../src/core/AnimationRecorder.cpp
+    ../src/core/GameCycleProcessor.cpp
     ../src/core/GameEngine.cpp
 )
 
