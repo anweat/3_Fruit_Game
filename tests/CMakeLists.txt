@@ -15,6 +15,10 @@ set(CORE_SOURCES_FOR_TEST
     ../src/core/AnimationRecorder.cpp
     ../src/core/GameCycleProcessor.cpp
     ../src/core/GameEngine.cpp
+    ../src/props/PropManager.cpp
+    ../src/props/Hammer.cpp
+    ../src/props/MagicWand.cpp
+    ../src/props/Clamp.cpp
 )
 
 # 测试源文件
@@ -41,6 +45,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     target_include_directories(${TEST_NAME} PRIVATE
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/src/core
+        ${CMAKE_SOURCE_DIR}/src/props
     )
     
     target_link_libraries(${TEST_NAME}
