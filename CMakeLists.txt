@@ -175,6 +175,9 @@ set(ANIMATION_HEADERS
 
 # 资源文件列表
 set(RESOURCE_FILES
+    resources/props/hammer.png
+    resources/props/clamp.png
+    resources/props/magic_wand.png
     resources/texture.png
     resources/textures/apple.png
     resources/textures/banana.png

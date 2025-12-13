@@ -57,6 +57,19 @@ public:
                         bool& outShuffled,
                         std::vector<std::vector<Fruit>>& outNewMap);
     
+    /**
+     * @brief 处理道具触发的单次消除
+     * @param map 游戏地图（会被修改）
+     * @param affectedPositions 道具影响的位置集合
+     * @param outRound 输出本次消除的轮次数据
+     * @param outScore 输出得分增量
+     * @return 是否成功消除
+     */
+    bool processPropElimination(std::vector<std::vector<Fruit>>& map,
+                                const std::set<std::pair<int, int>>& affectedPositions,
+                                GameRound& outRound,
+                                int& outScore);
+    
 private:
     /**
      * @brief 处理特殊元素生成
