@@ -37,10 +37,9 @@ struct AchievementDef {
     AchievementCategory category;       // 成就类别
     AchievementRarity rarity;          // 稀有度
     int reward;                         // 点数奖励
-    
-    // 解锁条件
     int targetValue;                    // 目标值
     QString conditionType;              // 条件类型 (如 "combo", "match", "score")
+    QString icon = "";                  // 成就图标 (emoji或文本，默认为空)
 };
 
 #endif // ACHIEVEMENTDEF_H

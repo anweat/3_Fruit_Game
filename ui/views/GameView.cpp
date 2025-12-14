@@ -3,9 +3,9 @@
 #include "EliminationAnimationRenderer.h"
 #include "FallAnimationRenderer.h"
 #include "ShuffleAnimationRenderer.h"
+#include "ScoreFloatOverlay.h"
 #include <QDebug>
 #include <QOpenGLFunctions>
-#include <QPainter>
 #include <cmath>
 #include <algorithm>
 
@@ -25,6 +25,7 @@ GameView::GameView(QWidget *parent)
     , eliminationRenderer_(nullptr)
     , fallRenderer_(nullptr)
     , shuffleRenderer_(nullptr)
+    , scoreOverlay_(nullptr)
     , selectedRow_(-1)
     , selectedCol_(-1)
     , hasSelection_(false)
@@ -38,6 +39,11 @@ GameView::GameView(QWidget *parent)
     eliminationRenderer_ = new EliminationAnimationRenderer();
     fallRenderer_ = new FallAnimationRenderer();
     shuffleRenderer_ = new ShuffleAnimationRenderer();
+    
+    // 📌 创建独立的分数浮动覆盖层（作为子 Widget，避免 OpenGL 和 QPainter 混合）
+    scoreOverlay_ = new ScoreFloatOverlay(this);
+    scoreOverlay_->setGeometry(0, 0, width(), height());
+    scoreOverlay_->show();
     
     // 设置阶段完成回调
     animController_->setPhaseCompleteCallback([this](AnimPhase phase) {
@@ -72,6 +78,7 @@ GameView::~GameView()
     delete eliminationRenderer_;
     delete fallRenderer_;
     delete shuffleRenderer_;
+    // scoreOverlay_ 作为子 Widget 由 Qt 自动管理，无需手动删除
     delete animController_;
     delete snapshotManager_;
     
@@ -173,6 +180,11 @@ void GameView::resizeGL(int w, int h)
     gridStartX_ = (w - gridWidth) / 2.0f;
     gridStartY_ = (h - gridWidth) / 2.0f;
     
+    // 📌 同步更新分数覆盖层大小
+    if (scoreOverlay_) {
+        scoreOverlay_->setGeometry(0, 0, w, h);
+    }
+    
     qDebug() << "Resized:" << w << "x" << h << "Cell size:" << cellSize_;
 }
 
@@ -218,6 +230,9 @@ void GameView::paintGL()
     if (animController_->getCurrentPhase() == AnimPhase::IDLE && propState_ != PropState::NONE) {
         drawPropSelection();
     }
+    
+    // 📌 分数浮动显示已移至独立的 ScoreFloatOverlay，不再在此使用 QPainter
+    // 这样可以避免 OpenGL 和 QPainter 上下文切换带来的性能开销和纹理精度损失
 }
 
 /**
@@ -627,8 +642,11 @@ void GameView::onAnimationTimer()
     // 更新AnimationController，检查是否有阶段完成
     bool phaseCompleted = animController_->updateProgress();
     
+    // 📌 浮动分数动画现在由 ScoreFloatOverlay 独立管理，无需在此更新
+    
     // 空闲时仅为选中框做脉冲重绘
     if (animController_->getCurrentPhase() == AnimPhase::IDLE) {
+        // 有选中框时需要重绘（分数覆盖层独立刷新，不影响 OpenGL）
         if (hasSelection_) {
             update();
         }
@@ -674,6 +692,34 @@ void GameView::beginEliminationStep(int roundIndex)
     
     // 更新隐藏格子（隐藏被消除的格子）
     snapshotManager_->updateHiddenCells(animSeq, roundIndex, AnimPhase::ELIMINATING);
+    
+    // 📌 添加浮动分数显示（使用独立覆盖层）
+    if (scoreOverlay_ && roundIndex >= 0 && roundIndex < static_cast<int>(animSeq.rounds.size())) {
+        const auto& round = animSeq.rounds[roundIndex];
+        if (round.scoreDelta > 0) {
+            // 计算消除区域的中心位置（屏幕坐标）
+            float centerX = 0.0f;
+            float centerY = 0.0f;
+            
+            if (!round.elimination.positions.empty()) {
+                for (const auto& pos : round.elimination.positions) {
+                    centerX += gridStartX_ + pos.second * cellSize_ + cellSize_ / 2.0f;
+                    centerY += gridStartY_ + pos.first * cellSize_ + cellSize_ / 2.0f;
+                }
+                centerX /= round.elimination.positions.size();
+                centerY /= round.elimination.positions.size();
+            } else {
+                // 默认显示在网格中心上方
+                centerX = gridStartX_ + (MAP_SIZE / 2.0f) * cellSize_;
+                centerY = gridStartY_ + cellSize_;
+            }
+            
+            // 稍微往上偏移，避免遮挡消除动画
+            centerY -= cellSize_ * 0.5f;
+            
+            scoreOverlay_->addScore(round.scoreDelta, round.comboCount, centerX, centerY);
+        }
+    }
 }
 
 /**

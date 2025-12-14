@@ -1,4 +1,6 @@
 #include "GameEngine.h"
+#include "../achievement/AchievementManager.h"
+#include "../data/Database.h"
 #include <algorithm>
 #include <iostream>
 
@@ -22,7 +24,7 @@ GameEngine::~GameEngine() {
 /**
  * @brief 初始化游戏
  */
-void GameEngine::initializeGame() {
+void GameEngine::initializeGame(int initialScore) {
     // 1. 初始化地图（确保无三连且有可移动）
     fruitGenerator_.initializeMap(map_);
     
@@ -31,7 +33,7 @@ void GameEngine::initializeGame() {
     
     // 3. 重置游戏状态
     state_ = GameState::IDLE;
-    currentScore_ = 0;
+    currentScore_ = initialScore;  // 📌 修复问题 #3: 支持初始分数（休闲模式）
     totalMatches_ = 0;
     scoreCalculator_.resetCombo();
     
@@ -55,6 +57,9 @@ bool GameEngine::swapFruits(int row1, int col1, int row2, int col2) {
         // 交换失败，直接返回
         return false;
     }
+    
+    // 统计：移动次数+1
+    sessionStats_.totalMoves++;
     
     // 2. 如果交换产生了消除轮次（CANDY/炸弹组合），添加到 rounds
     for (const auto& round : swapRounds) {
@@ -83,14 +88,53 @@ bool GameEngine::processGameCycle() {
     
     bool hadElimination = cycleProcessor_.processMatchCycle(map_, cycleRounds, totalScore);
     
-    // 追加循环产生的轮次
+    // 追加循环产生的轮次并统计消除数据
     for (const auto& round : cycleRounds) {
         lastAnimation_.rounds.push_back(round);
+        
+        // 统计消除数据
+        if (round.elimination.positions.size() > 0) {
+            sessionStats_.totalEliminates++;
+            
+            // 统计消除的水果类型
+            for (size_t i = 0; i < round.elimination.types.size(); ++i) {
+                int typeVal = static_cast<int>(round.elimination.types[i]);
+                if (typeVal > 0) {
+                    sessionStats_.eliminatedFruitTypes.insert(typeVal);
+                }
+            }
+            
+            // 📌 核心修复：遍历每个独立的匹配组，为每个4+消发送成就快照
+            for (const auto& matchGroup : round.elimination.matchGroups) {
+                int matchSize = matchGroup.count;
+                
+                // 统计单局消除次数
+                if (matchSize == 4) sessionStats_.match4Count++;
+                if (matchSize == 5) sessionStats_.match5Count++;
+                if (matchSize >= 6) sessionStats_.match6Count++;
+                
+                // 为每个匹配组发送成就快照
+                GameDataSnapshot snapshot;
+                snapshot.currentScore = currentScore_;
+                snapshot.lastMatchSize = matchSize;
+                snapshot.lastMatchElementType = static_cast<int>(matchGroup.type);
+                snapshot.lastMatchSameElement = true;  // 每个匹配组内部必然是同类型
+                snapshot.currentCombo = scoreCalculator_.getComboCount();
+                snapshot.gameMode = sessionStats_.gameMode;
+                snapshot.gameStartTime = sessionStats_.startTime;
+                
+                AchievementManager::instance().recordGameSnapshot(snapshot);
+            }
+        }
     }
     
     // 更新分数
     currentScore_ += totalScore;
     lastAnimation_.totalScoreDelta += totalScore;
+    
+    // 更新最大连击
+    sessionStats_.maxCombo = std::max(sessionStats_.maxCombo, 
+                                       scoreCalculator_.getComboCount());
     
     // 检查死局
     if (!hadElimination) {
@@ -263,4 +307,55 @@ bool GameEngine::useClampProp(int row1, int col1, int row2, int col2) {
     
     state_ = GameState::IDLE;
     return true;
+}
+
+// ==================== 成就系统集成 ====================
+
+/**
+ * @brief 开始游戏会话
+ */
+void GameEngine::startGameSession(const QString& mode)
+{
+    // 重置统计数据
+    sessionStats_ = GameSessionStats();
+    sessionStats_.gameMode = mode;
+    sessionStats_.startTime = QDateTime::currentMSecsSinceEpoch();
+    
+    // 通知成就系统（使用统一接口）
+    AchievementManager::instance().recordGameSession(mode, true);
+}
+
+/**
+ * @brief 结束游戏会话
+ */
+void GameEngine::endGameSession()
+{
+    // 构建完整快照
+    GameDataSnapshot snapshot;
+    snapshot.currentScore = currentScore_;
+    snapshot.maxCombo = sessionStats_.maxCombo;
+    snapshot.gameMode = sessionStats_.gameMode;
+    snapshot.gameStartTime = sessionStats_.startTime;
+    snapshot.moveCount = sessionStats_.totalMoves;
+    snapshot.eliminateCount = sessionStats_.totalEliminates;
+    snapshot.match4Count = sessionStats_.match4Count;
+    snapshot.match5Count = sessionStats_.match5Count;
+    snapshot.match6Count = sessionStats_.match6Count;
+    snapshot.fruitTypesEliminated = sessionStats_.eliminatedFruitTypes;
+    snapshot.propUsed = (sessionStats_.propUsed > 0);
+    
+    // 保存数据到数据库（仅非游客模式）
+    QString playerId = Database::instance().getCurrentPlayerId();
+    if (sessionStats_.gameMode == "Casual" && playerId != "guest") {
+        Database::instance().savePlayerScore(playerId, currentScore_);
+        Database::instance().savePlayerProps(
+            playerId,
+            propManager_.getPropCount(PropType::HAMMER),
+            propManager_.getPropCount(PropType::CLAMP),
+            propManager_.getPropCount(PropType::MAGIC_WAND)
+        );
+    }
+    
+    // 通知成就系统结束会话
+    AchievementManager::instance().recordGameSession(sessionStats_.gameMode, false);
 }

@@ -1,11 +1,16 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
+#include "LoginWidget.h"
+#include "../src/achievement/AchievementManager.h"
+#include "../src/data/Database.h"
 #include <QDebug>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QScrollBar>
 #include <QTimer>
+#include <QStackedWidget>
+#include <QCoreApplication>
 
 /**
  * @brief 构造函数
@@ -13,6 +18,9 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , loginWidget_(nullptr)
+    , currentPlayerId_("guest")
+    , currentPlayerName_("")
     , gameEngine_(nullptr)
     , gameTestWidget_(nullptr)
     , gameOutputText_(nullptr)
@@ -27,10 +35,43 @@ MainWindow::MainWindow(QWidget *parent)
     , hammerCountLabel_(nullptr)
     , clampCountLabel_(nullptr)
     , magicWandCountLabel_(nullptr)
+    , achievementNotification_(nullptr)
 {
     ui->setupUi(this);
     setupUi();
     connectSignals();
+    
+    // 初始化数据库（使用绝对路径）
+    QString dbPath = QCoreApplication::applicationDirPath() + "/fruitcrush.db";
+    if (!Database::instance().initialize(dbPath)) {
+        qCritical() << "Failed to initialize database!";
+    } else {
+        qDebug() << "Database initialized at:" << dbPath;
+    }
+    
+    // 初始化成就系统（通用部分）
+    AchievementManager::instance().initialize();
+    
+    // 创建成就通知组件
+    achievementNotification_ = new AchievementNotificationWidget(this);
+    
+    // Register achievement notification callback
+    AchievementManager::instance().setNotificationCallback(
+        [this](const AchievementNotification& notification) {
+            achievementNotification_->enqueueNotification(notification);
+        }
+    );
+    
+    // 创建游戏引擎并传递给成就系统（用于添加奖励分数）
+    if (!gameEngine_) {
+        gameEngine_ = new GameEngine();
+        AchievementManager::instance().setGameEngine(gameEngine_);
+    }
+    
+    // 显示登录界面
+    showLoginScreen();
+    
+    qDebug() << "MainWindow initialized";
 }
 
 /**
@@ -38,6 +79,22 @@ MainWindow::MainWindow(QWidget *parent)
  */
 MainWindow::~MainWindow()
 {
+    qDebug() << "========== SHUTTING DOWN ==========";
+    
+    // 如果游戏还在进行中，先结束会话保存数据
+    if (gameEngine_) {
+        gameEngine_->endGameSession();
+        qDebug() << "✅ Game session ended on shutdown";
+    }
+    
+    // 关闭成就系统
+    AchievementManager::instance().shutdown();
+    
+    // 关闭数据库连接
+    Database::instance().close();
+    qDebug() << "✅ Database closed";
+    
+    // 释放资源
     if (gameEngine_) {
         delete gameEngine_;
     }
@@ -47,7 +104,12 @@ MainWindow::~MainWindow()
     if (gameViewWidget_) {
         delete gameViewWidget_;
     }
+    if (achievementNotification_) {
+        delete achievementNotification_;
+    }
     delete ui;
+    
+    qDebug() << "=====================================";
 }
 
 /**
@@ -59,7 +121,63 @@ void MainWindow::setupUi()
     setWindowTitle("水果消消乐 - Fruit Crush");
     setMinimumSize(800, 600);
     
-    qDebug() << "MainWindow initialized";
+    // ui->setupUi 已经在构造函数中调用，会创建 centralwidget 和 stackedWidget
+    // stackedWidget 已由 .ui 文件创建，包含 mainMenuPage
+    
+    qDebug() << "MainWindow setupUi completed";
+}
+
+/**
+ * @brief 显示登录界面
+ */
+void MainWindow::showLoginScreen()
+{
+    // 创建登录界面并添加到 stackedWidget
+    if (!loginWidget_) {
+        loginWidget_ = new LoginWidget(this);
+        
+        // 将登录界面添加到 stackedWidget（作为新的页面）
+        if (ui->stackedWidget) {
+            ui->stackedWidget->addWidget(loginWidget_);
+        }
+        
+        // 🔴 连接登录成功信号
+        connect(loginWidget_, &LoginWidget::loginSucceeded, this, [this](const QString& playerId, const QString& playerName) {
+            // 初始化该玩家的成就系统
+            initAchievementSystemForPlayer(playerId);
+            
+            // 显示主菜单
+            showMainMenu();
+        });
+    }
+    
+    // 切换到登录界面页面
+    if (ui->stackedWidget) {
+        ui->stackedWidget->setCurrentWidget(loginWidget_);
+    }
+}
+
+/**
+ * @brief 初始化成就系统（用于当前玩家）
+ */
+void MainWindow::initAchievementSystemForPlayer(const QString& playerId)
+{
+    currentPlayerId_ = playerId;
+    
+    // 通知成就系统切换玩家
+    AchievementManager::instance().setCurrentPlayerId(playerId);
+    
+    if (playerId == "guest") {
+        currentPlayerName_ = "游客";
+    } else {
+        PlayerData player = Database::instance().getPlayer(playerId);
+        currentPlayerName_ = player.username;
+        Database::instance().initializeAchievements(playerId);
+        Database::instance().setCurrentPlayerId(playerId);
+    }
+    
+    // 设置数据库的当前玩家 ID
+    Database::instance().setCurrentPlayerId(playerId);
 }
 
 /**
@@ -67,11 +185,9 @@ void MainWindow::setupUi()
  */
 void MainWindow::connectSignals()
 {
-    // 连接主菜单按钮
-    connect(ui->casualModeButton, &QPushButton::clicked, this, &MainWindow::startCasualMode);
-    connect(ui->competitionModeButton, &QPushButton::clicked, this, &MainWindow::startCompetitionMode);
-    connect(ui->leaderboardButton, &QPushButton::clicked, this, &MainWindow::showLeaderboard);
-    connect(ui->achievementsButton, &QPushButton::clicked, this, &MainWindow::showAchievements);
+    // 注意：主菜单按钮的连接会在 showMainMenu() 中进行
+    // 这里暂时不连接，因为菜单还不存在
+    // 当登录成功后，showMainMenu() 会重新创建菜单并连接按钮
 }
 
 /**
@@ -79,8 +195,26 @@ void MainWindow::connectSignals()
  */
 void MainWindow::showMainMenu()
 {
-    qDebug() << "Show Main Menu";
-    // TODO: 实现主菜单显示逻辑
+    qDebug() << "Show Main Menu for player:" << currentPlayerId_;
+    
+    // 重新连接菜单按钮（现在我们知道玩家已登录）
+    if (ui->casualModeButton) {
+        connect(ui->casualModeButton, &QPushButton::clicked, this, &MainWindow::startCasualMode, Qt::UniqueConnection);
+    }
+    if (ui->competitionModeButton) {
+        connect(ui->competitionModeButton, &QPushButton::clicked, this, &MainWindow::startCompetitionMode, Qt::UniqueConnection);
+    }
+    if (ui->leaderboardButton) {
+        connect(ui->leaderboardButton, &QPushButton::clicked, this, &MainWindow::showLeaderboard, Qt::UniqueConnection);
+    }
+    if (ui->achievementsButton) {
+        connect(ui->achievementsButton, &QPushButton::clicked, this, &MainWindow::showAchievements, Qt::UniqueConnection);
+    }
+    
+    // 切换到主菜单页面（.ui 文件中的 mainMenuPage，index 0）
+    if (ui && ui->stackedWidget) {
+        ui->stackedWidget->setCurrentIndex(0);
+    }
 }
 
 /**
@@ -88,26 +222,35 @@ void MainWindow::showMainMenu()
  */
 void MainWindow::startCasualMode()
 {
-    qDebug() << "Start Casual Mode - OpenGL Rendering";
+    Q_ASSERT(gameEngine_ != nullptr);
     
-    // 创建游戏引擎
-    if (!gameEngine_) {
-        gameEngine_ = new GameEngine();
+    // 从数据库加载玩家数据
+    int savedScore = 0;
+    int hammerCount = 3, clampCount = 3, magicWandCount = 3;
+    
+    if (currentPlayerId_ != "guest") {
+        savedScore = Database::instance().getPlayerScore(currentPlayerId_);
+        Database::PropData props = Database::instance().getPlayerProps(currentPlayerId_);
+        hammerCount = props.hammerCount;
+        clampCount = props.clampCount;
+        magicWandCount = props.magicWandCount;
     }
     
-    // 初始化游戏
-    gameEngine_->initializeGame();
+    // 初始化游戏引擎
+    gameEngine_->initializeGame(savedScore);
+    gameEngine_->getPropManager().setAllProps(hammerCount, clampCount, magicWandCount);
+    gameEngine_->startGameSession("Casual");
     
-    // 创建OpenGL游戏视图
+    // ======== 第4步：创建/显示游戏界面 ========
     if (!gameViewWidget_) {
         createGameViewWidget();
     }
-    
-    // 设置引擎
     gameView_->setGameEngine(gameEngine_);
     
     // 切换到游戏界面
-    ui->stackedWidget->addWidget(gameViewWidget_);
+    if (!ui->stackedWidget->findChild<QWidget*>("gamePageWidget")) {
+        ui->stackedWidget->addWidget(gameViewWidget_);
+    }
     ui->stackedWidget->setCurrentWidget(gameViewWidget_);
 }
 
@@ -134,8 +277,8 @@ void MainWindow::showLeaderboard()
  */
 void MainWindow::showAchievements()
 {
-    qDebug() << "Show Achievements";
-    // TODO: 实现成就页面显示逻辑
+    AchievementDialog dialog(currentPlayerId_, currentPlayerName_, this);
+    dialog.exec();
 }
 
 /**
@@ -286,7 +429,15 @@ void MainWindow::testSwap()
  */
 void MainWindow::backToMenu()
 {
-    qDebug() << "Back to main menu";
+    qDebug() << "========== BACK TO MENU ==========";
+    
+    if (gameEngine_) {
+        // ======== 结束游戏会话（保存分数+成就） ========
+        gameEngine_->endGameSession();
+        qDebug() << "✅ Game session ended, data saved";
+    }
+    
+    qDebug() << "=====================================";
     
     // 切换到主菜单页面
     ui->stackedWidget->setCurrentIndex(0);

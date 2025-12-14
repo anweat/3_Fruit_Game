@@ -50,6 +50,18 @@ public:
     void addProp(PropType propType, int count = 1);
     
     /**
+     * @brief 设置道具数量
+     * @param propType 道具类型
+     * @param count 数量
+     */
+    void setPropCount(PropType propType, int count);
+    
+    /**
+     * @brief 设置所有道具数量
+     */
+    void setAllProps(int hammer, int clamp, int magicWand);
+    
+    /**
      * @brief 使用锤子道具
      * @param map 游戏地图
      * @param row 目标行

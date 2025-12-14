@@ -82,6 +82,7 @@ void AnimationRecorder::recordElimination(std::vector<std::vector<Fruit>>& map,
                                            const std::set<std::pair<int, int>>& specialPositions,
                                            EliminationStep& outElimStep) {
     outElimStep.positions.clear();
+    outElimStep.types.clear();
     outElimStep.bombEffects.clear();
     
     // 注意：这个方法假设调用前已经标记了 isMatched
@@ -91,8 +92,9 @@ void AnimationRecorder::recordElimination(std::vector<std::vector<Fruit>>& map,
     for (int row = 0; row < MAP_SIZE; row++) {
         for (int col = 0; col < MAP_SIZE; col++) {
             if (map[row][col].isMatched) {
-                // 记录消除位置
+                // 记录消除位置和原始类型（在消除前保存，用于成就检测）
                 outElimStep.positions.push_back({row, col});
+                outElimStep.types.push_back(map[row][col].type);
                 
                 // 如果是特殊元素，记录炸弹特效
                 if (map[row][col].special != SpecialType::NONE) {

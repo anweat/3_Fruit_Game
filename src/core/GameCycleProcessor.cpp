@@ -57,8 +57,21 @@ bool GameCycleProcessor::processMatchCycle(std::vector<std::vector<Fruit>>& map,
         int score = scoreCalculator_.calculateTotalScore(matches, comboMultiplier);
         outTotalScore += score;
         
+        // 📌 保存本轮得分和连击数（用于分数浮动显示）
+        round.scoreDelta = score;
+        round.comboCount = scoreCalculator_.getComboCount();
+        
         // 4. 标记匹配的水果为待消除（跳过刚生成的特殊元素和CANDY）
         markMatchesForElimination(map, matches, specialPositions);
+        
+        // 📌 保存每个匹配组的信息（用于多消成就检测）
+        round.elimination.matchGroups.clear();
+        for (const auto& match : matches) {
+            MatchGroup group;
+            group.count = match.matchCount;
+            group.type = match.fruitType;
+            round.elimination.matchGroups.push_back(group);
+        }
         
         // 5. 触发特殊元素效果
         triggerSpecialEffects(map, specialPositions);

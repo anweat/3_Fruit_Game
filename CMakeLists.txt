@@ -44,9 +44,11 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/props
     ${CMAKE_SOURCE_DIR}/src/mode
     ${CMAKE_SOURCE_DIR}/src/achievement
+    ${CMAKE_SOURCE_DIR}/src/achievement/detectors
     ${CMAKE_SOURCE_DIR}/src/data
     ${CMAKE_SOURCE_DIR}/src/utils
     ${CMAKE_SOURCE_DIR}/ui
+    ${CMAKE_SOURCE_DIR}/ui/views
     ${CMAKE_SOURCE_DIR}/ui/views/animation
     ${CMAKE_SOURCE_DIR}/ui/input
 )
@@ -113,11 +115,32 @@ set(MODE_HEADERS
 
 set(ACHIEVEMENT_SOURCES
     src/achievement/AchievementManager.cpp
+    src/achievement/detectors/BeginnerAchievementDetector.cpp
+    src/achievement/detectors/ComboAchievementDetector.cpp
+    src/achievement/detectors/MultiMatchAchievementDetector.cpp
+    src/achievement/detectors/SpecialAchievementDetector.cpp
+    src/achievement/detectors/ScoreAchievementDetector.cpp
+    src/achievement/detectors/PropAchievementDetector.cpp
+    src/achievement/detectors/ChallengeAchievementDetector.cpp
+    src/achievement/detectors/MilestoneAchievementDetector.cpp
+    src/achievement/detectors/AchievementDetectorManager.cpp
+    src/achievement/detectors/DetectorFactory.cpp
 )
 
 set(ACHIEVEMENT_HEADERS
     src/achievement/AchievementManager.h
     src/achievement/AchievementDef.h
+    src/achievement/detectors/IAchievementDetector.h
+    src/achievement/detectors/BeginnerAchievementDetector.h
+    src/achievement/detectors/ComboAchievementDetector.h
+    src/achievement/detectors/MultiMatchAchievementDetector.h
+    src/achievement/detectors/SpecialAchievementDetector.h
+    src/achievement/detectors/ScoreAchievementDetector.h
+    src/achievement/detectors/PropAchievementDetector.h
+    src/achievement/detectors/ChallengeAchievementDetector.h
+    src/achievement/detectors/MilestoneAchievementDetector.h
+    src/achievement/detectors/AchievementDetectorManager.h
+    src/achievement/detectors/DetectorFactory.h
 )
 
 set(DATA_SOURCES
@@ -142,16 +165,22 @@ set(UTILS_HEADERS
 
 set(UI_SOURCES
     ui/MainWindow.cpp
+    ui/LoginWidget.cpp
+    ui/AchievementDialog.cpp
     ui/views/GameView.cpp
     ui/views/RankView.cpp
     ui/views/AchievementView.cpp
+    ui/views/AchievementNotificationWidget.cpp
 )
 
 set(UI_HEADERS
     ui/MainWindow.h
+    ui/LoginWidget.h
+    ui/AchievementDialog.h
     ui/views/GameView.h
     ui/views/RankView.h
     ui/views/AchievementView.h
+    ui/views/AchievementNotificationWidget.h
 )
 
 # 已删除: ui/views/MainMenuView 和 ui/widgets/ (使用 OpenGL 直接渲染)
@@ -169,6 +198,7 @@ set(ANIMATION_VIEW_SOURCES
     ui/views/animation/EliminationAnimationRenderer.cpp
     ui/views/animation/FallAnimationRenderer.cpp
     ui/views/animation/ShuffleAnimationRenderer.cpp
+    ui/views/ScoreFloatOverlay.cpp
 )
 
 set(ANIMATION_VIEW_HEADERS
@@ -179,6 +209,7 @@ set(ANIMATION_VIEW_HEADERS
     ui/views/animation/EliminationAnimationRenderer.h
     ui/views/animation/FallAnimationRenderer.h
     ui/views/animation/ShuffleAnimationRenderer.h
+    ui/views/ScoreFloatOverlay.h
 )
 
 # 输入处理系统（鼠标交互解耦）

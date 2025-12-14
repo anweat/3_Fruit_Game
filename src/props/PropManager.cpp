@@ -47,6 +47,28 @@ void PropManager::addProp(PropType propType, int count) {
     }
 }
 
+void PropManager::setPropCount(PropType propType, int count) {
+    if (count < 0) count = 0;
+    
+    switch (propType) {
+        case PropType::HAMMER:
+            hammerCount_ = count;
+            break;
+        case PropType::CLAMP:
+            clampCount_ = count;
+            break;
+        case PropType::MAGIC_WAND:
+            magicWandCount_ = count;
+            break;
+    }
+}
+
+void PropManager::setAllProps(int hammer, int clamp, int magicWand) {
+    hammerCount_ = (hammer >= 0) ? hammer : 0;
+    clampCount_ = (clamp >= 0) ? clamp : 0;
+    magicWandCount_ = (magicWand >= 0) ? magicWand : 0;
+}
+
 /**
  * @brief 使用锤子道具：消除单个水果
  */

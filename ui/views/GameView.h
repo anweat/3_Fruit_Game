@@ -21,6 +21,7 @@ class SwapAnimationRenderer;
 class EliminationAnimationRenderer;
 class FallAnimationRenderer;
 class ShuffleAnimationRenderer;
+class ScoreFloatOverlay;
 
 /**
  * @brief 道具交互状态（注意：这是GameView内部使用的枚举，与InputHandler中的PropInteractionState不同）
@@ -129,6 +130,7 @@ private:
     EliminationAnimationRenderer* eliminationRenderer_; ///< 消除动画渲染器
     FallAnimationRenderer* fallRenderer_;       ///< 下落动画渲染器
     ShuffleAnimationRenderer* shuffleRenderer_; ///< 重排动画渲染器
+    ScoreFloatOverlay* scoreOverlay_;           ///< 分数浮动覆盖层（独立 Widget）
     
     // ========== 选中和道具状态 ==========
     int selectedRow_;

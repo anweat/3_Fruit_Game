@@ -14,6 +14,8 @@
 #include "../props/PropManager.h"
 #include <set>
 #include <vector>
+#include <QDateTime>
+#include <QSet>
 
 /**
  * @brief 点击模式枚举（与 GameView 中的定义保持一致）
@@ -58,10 +60,20 @@ struct BombEffect {
 };
 
 /**
+ * @brief 单个匹配组信息（用于成就检测）
+ */
+struct MatchGroup {
+    int count = 0;                      ///< 匹配数量（3、4、5等）
+    FruitType type = FruitType::EMPTY;  ///< 水果类型
+};
+
+/**
  * @brief 单轮消除步骤信息
  */
 struct EliminationStep {
     std::vector<std::pair<int, int>> positions; ///< 本轮被消除的所有格子
+    std::vector<FruitType> types;               ///< 对应位置的原始水果类型（用于成就检测）
+    std::vector<MatchGroup> matchGroups;        ///< 每个匹配组的独立信息（用于多消成就）
     std::vector<BombEffect> bombEffects;        ///< 本轮触发的炸弹特效列表
 };
 
@@ -99,6 +111,8 @@ struct FallStep {
 struct GameRound {
     EliminationStep elimination;   ///< 本轮消除的元素
     FallStep fall;                 ///< 本轮下落+新生成
+    int scoreDelta = 0;            ///< 本轮得分增量（用于分数浮动显示）
+    int comboCount = 0;            ///< 本轮连击数（用于颜色渲染）
 };
 
 /**
@@ -153,8 +167,9 @@ public:
     
     /**
      * @brief 初始化游戏（创建地图）
+     * @param initialScore 初始分数（默认0，用于休闲模式恢复分数）
      */
-    void initializeGame();
+    void initializeGame(int initialScore = 0);
     
     /**
      * @brief 尝试交换两个水果
@@ -181,6 +196,16 @@ public:
      * @brief 获取当前分数
      */
     int getCurrentScore() const { return currentScore_; }
+    
+    /**
+     * @brief 增加分数（用于成就奖励）
+     * @param score 要增加的分数
+     */
+    void addScore(int score) {
+        if (score > 0) {
+            currentScore_ += score;
+        }
+    }
     
     /**
      * @brief 获取连击数
@@ -237,6 +262,39 @@ public:
      */
     bool useClampProp(int row1, int col1, int row2, int col2);
     
+    // ==================== 成就系统相关 ====================
+    
+    /**
+     * @brief 开始游戏会话（通知成就系统）
+     * @param mode 游戏模式（"Casual" 或 "Competition"）
+     */
+    void startGameSession(const QString& mode);
+    
+    /**
+     * @brief 结束游戏会话（通知成就系统）
+     */
+    void endGameSession();
+    
+    /**
+     * @brief 获取当前游戏会话的统计数据
+     */
+    struct GameSessionStats {
+        int totalMoves = 0;              // 总移动次数
+        int totalEliminates = 0;         // 总消除次数
+        int maxCombo = 0;                // 最大连击
+        int match4Count = 0;             // 4消次数
+        int match5Count = 0;             // 5消次数
+        int match6Count = 0;             // 6消次数
+        int specialGenerated = 0;        // 生成的特殊元素数
+        int specialUsed = 0;             // 使用的特殊元素数
+        int propUsed = 0;                // 使用的道具数
+        QSet<int> eliminatedFruitTypes;  // 消除过的水果类型
+        qint64 startTime = 0;            // 会话开始时间
+        QString gameMode;                // 游戏模式
+    };
+    
+    const GameSessionStats& getSessionStats() const { return sessionStats_; }
+    
 private:
     // 基础子系统
     FruitGenerator fruitGenerator_;              ///< 水果生成器
@@ -260,6 +318,9 @@ private:
     
     // 记录最近一次玩家操作产生的完整动画序列
     GameAnimationSequence lastAnimation_;
+    
+    // 游戏会话统计（用于成就系统）
+    GameSessionStats sessionStats_;
 };
 
 #endif // GAMEENGINE_H

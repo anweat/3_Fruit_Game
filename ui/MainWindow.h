@@ -7,6 +7,9 @@
 #include <QPushButton>
 #include <QLabel>
 #include "views/GameView.h"
+#include "views/AchievementNotificationWidget.h"
+#include "LoginWidget.h"
+#include "AchievementDialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -34,6 +37,11 @@ public:
     ~MainWindow();
 
 private slots:
+    /**
+     * @brief 显示登录界面
+     */
+    void showLoginScreen();
+    
     /**
      * @brief 显示主菜单
      */
@@ -82,6 +90,11 @@ private slots:
 private:
     Ui::MainWindow *ui;
     
+    // 登录界面
+    LoginWidget* loginWidget_;
+    QString currentPlayerId_;      // 当前玩家ID
+    QString currentPlayerName_;    // 当前玩家名称
+    
     // 游戏引擎
     GameEngine* gameEngine_;
     
@@ -103,6 +116,9 @@ private:
     QLabel* hammerCountLabel_;      // 锤子数量标签
     QLabel* clampCountLabel_;       // 夹子数量标签
     QLabel* magicWandCountLabel_;   // 魔法棒数量标签
+    
+    // 成就通知组件
+    AchievementNotificationWidget* achievementNotification_;
     
     /**
      * @brief 初始化UI组件
@@ -138,6 +154,11 @@ private:
      * @brief 返回主菜单
      */
     void backToMenu();
+    
+    /**
+     * @brief 初始化成就系统（用于当前玩家）
+     */
+    void initAchievementSystemForPlayer(const QString& playerId);
 };
 
 #endif // MAINWINDOW_H
