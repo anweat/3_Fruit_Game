@@ -54,8 +54,9 @@ void InputHandler::handleMousePress(const QPoint& screenPos, const QRect& gridRe
         return;  // 动画期间不接受输入
     }
     
+    int mapSize = gameEngine_ ? gameEngine_->getCurrentMapSize() : 8;
     int row, col;
-    if (screenToGrid(screenPos, gridRect, cellSize, row, col)) {
+    if (screenToGrid(screenPos, gridRect, cellSize, mapSize, row, col)) {
         // 点击在网格内，使用策略处理
         if (clickStrategy_) {
             bool changed = clickStrategy_->handleClick(row, col, selectionState_, propInteractionData_);
@@ -94,7 +95,7 @@ void InputHandler::handleMouseMove(const QPoint& screenPos, const QRect& gridRec
     }
 }
 
-bool InputHandler::screenToGrid(const QPoint& screenPos, const QRect& gridRect, float cellSize, int& row, int& col)
+bool InputHandler::screenToGrid(const QPoint& screenPos, const QRect& gridRect, float cellSize, int mapSize, int& row, int& col)
 {
     float gridX = screenPos.x() - gridRect.x();
     float gridY = screenPos.y() - gridRect.y();
@@ -102,7 +103,7 @@ bool InputHandler::screenToGrid(const QPoint& screenPos, const QRect& gridRect, 
     col = static_cast<int>(gridX / cellSize);
     row = static_cast<int>(gridY / cellSize);
     
-    return (row >= 0 && row < MAP_SIZE && col >= 0 && col < MAP_SIZE);
+    return (row >= 0 && row < mapSize && col >= 0 && col < mapSize);
 }
 
 void InputHandler::updateClickStrategy()

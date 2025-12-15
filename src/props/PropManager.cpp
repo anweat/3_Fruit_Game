@@ -1,4 +1,4 @@
-﻿#include "PropManager.h"
+#include "PropManager.h"
 #include "../core/FruitTypes.h"
 #include <iostream>
 
@@ -80,7 +80,7 @@ bool PropManager::useHammer(const std::vector<std::vector<Fruit>>& map,
     }
     
     // 检查目标位置是否有效
-    if (row < 0 || row >= MAP_SIZE || col < 0 || col >= MAP_SIZE) {
+    if (row < 0 || row >= static_cast<int>(map.size()) || col < 0 || col >= static_cast<int>(map.size())) {
         return false;
     }
     
@@ -110,8 +110,7 @@ bool PropManager::useClamp(const std::vector<std::vector<Fruit>>& map,
     }
     
     // 检查位置是否有效
-    if (row1 < 0 || row1 >= MAP_SIZE || col1 < 0 || col1 >= MAP_SIZE ||
-        row2 < 0 || row2 >= MAP_SIZE || col2 < 0 || col2 >= MAP_SIZE) {
+    if (row1 < 0 || row1 >= static_cast<int>(map.size()) || col1 < 0 || col1 >= static_cast<int>(map.size()) || row2 < 0 || row2 >= static_cast<int>(map.size()) || col2 < 0 || col2 >= static_cast<int>(map.size())) {
         return false;
     }
     
@@ -144,7 +143,7 @@ bool PropManager::useMagicWand(const std::vector<std::vector<Fruit>>& map,
     }
     
     // 检查目标位置是否有效
-    if (row < 0 || row >= MAP_SIZE || col < 0 || col >= MAP_SIZE) {
+    if (row < 0 || row >= static_cast<int>(map.size()) || col < 0 || col >= static_cast<int>(map.size())) {
         return false;
     }
     
@@ -165,8 +164,8 @@ bool PropManager::useMagicWand(const std::vector<std::vector<Fruit>>& map,
     
     // 找到所有相同类型的水果
     outAffected.clear();
-    for (int r = 0; r < MAP_SIZE; r++) {
-        for (int c = 0; c < MAP_SIZE; c++) {
+    for (int r = 0; r < static_cast<int>(map.size()); r++) {
+        for (int c = 0; c < static_cast<int>(map.size()); c++) {
             if (map[r][c].type == targetType) {
                 outAffected.insert({r, c});
             }

@@ -18,6 +18,7 @@ void SwapAnimationRenderer::render(
     float gridStartX,
     float gridStartY,
     float cellSize,
+    int mapSize,
     const std::vector<QOpenGLTexture*>& textures)
 {
     // 从动画序列获取交换信息

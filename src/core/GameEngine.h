@@ -85,6 +85,8 @@ struct FallMove {
     int fromCol = -1;
     int toRow   = -1;
     int toCol   = -1;
+    FruitType type = FruitType::EMPTY;      ///< 水果类型（用于动画渲染）
+    SpecialType special = SpecialType::NONE; ///< 特殊类型（用于动画渲染）
 };
 
 /**
@@ -168,8 +170,9 @@ public:
     /**
      * @brief 初始化游戏（创建地图）
      * @param initialScore 初始分数（默认0，用于休闲模式恢复分数）
+     * @param mapSize 地图大小（默认使用 MAP_SIZE，休闲模式可自定义）
      */
-    void initializeGame(int initialScore = 0);
+    void initializeGame(int initialScore = 0, int mapSize = MAP_SIZE);
     
     /**
      * @brief 尝试交换两个水果
@@ -296,6 +299,16 @@ public:
     
     const GameSessionStats& getSessionStats() const { return sessionStats_; }
     
+    /**
+     * @brief 获取当前地图大小
+     */
+    int getCurrentMapSize() const { return mapSize_; }
+    
+    /**
+     * @brief 设置地图大小（需要在 initializeGame 之前调用）
+     */
+    void setMapSize(int size) { mapSize_ = size; }
+    
 private:
     // 基础子系统
     FruitGenerator fruitGenerator_;              ///< 水果生成器
@@ -312,7 +325,8 @@ private:
     PropManager propManager_;                    ///< 道具管理器
     
     // 游戏数据
-    std::vector<std::vector<Fruit>> map_;        ///< 游戏地图 (8×8)
+    std::vector<std::vector<Fruit>> map_;        ///< 游戏地图（大小可配置）
+    int mapSize_;                                ///< 当前地图大小
     GameState state_;                            ///< 当前游戏状态
     int currentScore_;                           ///< 当前分数
     int totalMatches_;                           ///< 总匹配次数（统计用）

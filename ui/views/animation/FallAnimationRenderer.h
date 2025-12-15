@@ -9,10 +9,13 @@ class QOpenGLTexture;
  * @brief 下落动画渲染器
  * 
  * 职责：
- * - 绘制旧水果下落动画
+ * - 使用动画序列中记录的FallMove数据绘制下落动画
  * - 绘制新水果从顶部入场动画
  * 
- * 继承关系：IAnimationRenderer → FallAnimationRenderer
+ * 关键设计：
+ * - 使用 round.fall.moves 精确控制每个水果的移动
+ * - 使用 round.fall.newFruits 精确控制新水果的生成
+ * - 不依赖engineMap（最终状态），确保多轮消除时动画正确
  */
 class FallAnimationRenderer : public IAnimationRenderer
 {
@@ -32,31 +35,9 @@ public:
         float gridStartX,
         float gridStartY,
         float cellSize,
+        int mapSize,
         const std::vector<QOpenGLTexture*>& textures
     ) override;
-    
-private:
-    /**
-     * @brief 绘制下落的旧水果
-     */
-    void renderFallingFruits(
-        const FallStep& step,
-        float progress,
-        const std::vector<std::vector<Fruit>>& engineMap,
-        float gridStartX, float gridStartY, float cellSize,
-        const std::vector<QOpenGLTexture*>& textures
-    );
-    
-    /**
-     * @brief 绘制新生成的水果（从顶部入场）
-     */
-    void renderNewFruits(
-        const FallStep& step,
-        float progress,
-        const std::vector<std::vector<Fruit>>& engineMap,
-        float gridStartX, float gridStartY, float cellSize,
-        const std::vector<QOpenGLTexture*>& textures
-    );
 };
 
 #endif // FALLANIMATIONRENDERER_H

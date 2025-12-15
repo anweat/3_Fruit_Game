@@ -48,6 +48,7 @@ public:
     
     void setGameEngine(GameEngine* engine);
     void updateDisplay();
+    void updateMapLayout();  ///< 更新地图布局（地图大小变化时调用）
     
     /**
      * @brief 设置点击模式
@@ -109,6 +110,9 @@ private:
     
     /// 阶段完成回调
     void handlePhaseComplete(AnimPhase phase);
+    
+    /// 获取当前地图大小
+    int getMapSize() const;
     
     // ========== 引擎和基础 ==========
     GameEngine* gameEngine_;

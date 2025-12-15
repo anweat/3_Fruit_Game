@@ -67,7 +67,7 @@ private:
      */
     std::vector<MatchResult> detectHorizontalMatches(
         const std::vector<std::vector<Fruit>>& map,
-        bool matched[MAP_SIZE][MAP_SIZE]);
+        std::vector<std::vector<bool>>& matched);
     
     /**
      * @brief 检测纵向匹配
@@ -77,7 +77,7 @@ private:
      */
     std::vector<MatchResult> detectVerticalMatches(
         const std::vector<std::vector<Fruit>>& map,
-        bool matched[MAP_SIZE][MAP_SIZE]);
+        std::vector<std::vector<bool>>& matched);
     
     /**
      * @brief 合并交叉匹配（L形、T形等）

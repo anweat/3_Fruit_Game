@@ -1,4 +1,4 @@
-#include "GameCycleProcessor.h"
+﻿#include "GameCycleProcessor.h"
 #include "GameEngine.h"  // 包含完整的结构体定义
 #include <algorithm>
 
@@ -31,13 +31,13 @@ bool GameCycleProcessor::processMatchCycle(std::vector<std::vector<Fruit>>& map,
     bool hadElimination = false;
     bool isFirstMatch = true;  // 只有第一轮才生成特殊元素
     
-    // 循环处理：匹配 → 消除 → 下落 → 再匹配
+    // 循环处理：匹�?�?消除 �?下落 �?再匹�?
     while (true) {
-        // 1. 检测匹配
+        // 1. 检测匹�?
         auto matches = matchDetector_.detectMatches(map);
         
         if (matches.empty()) {
-            break;  // 没有匹配，结束循环
+            break;  // 没有匹配，结束循�?
         }
         
         hadElimination = true;
@@ -61,7 +61,7 @@ bool GameCycleProcessor::processMatchCycle(std::vector<std::vector<Fruit>>& map,
         round.scoreDelta = score;
         round.comboCount = scoreCalculator_.getComboCount();
         
-        // 4. 标记匹配的水果为待消除（跳过刚生成的特殊元素和CANDY）
+        // 4. 标记匹配的水果为待消除（跳过刚生成的特殊元素和CANDY�?
         markMatchesForElimination(map, matches, specialPositions);
         
         // 📌 保存每个匹配组的信息（用于多消成就检测）
@@ -76,10 +76,10 @@ bool GameCycleProcessor::processMatchCycle(std::vector<std::vector<Fruit>>& map,
         // 5. 触发特殊元素效果
         triggerSpecialEffects(map, specialPositions);
         
-        // 6. 记录并执行消除
+        // 6. 记录并执行消�?
         animRecorder_.recordElimination(map, specialPositions, round.elimination);
         
-        // 7. 处理下落和填充
+        // 7. 处理下落和填�?
         animRecorder_.recordFallAndRefill(map, fruitGenerator_, round.fall);
         
         // 8. 保存本轮
@@ -110,15 +110,15 @@ void GameCycleProcessor::processSpecialGeneration(std::vector<std::vector<Fruit>
             auto pos = specialGenerator_.generateSpecialFruit(map, match, specialType);
             
             if (pos.first == -2 && pos.second == -2) {
-                // 位置冲突，升级炸弹
+                // 位置冲突，升级炸�?
                 std::pair<int, int> origPos = {-1, -1};
                 if (!match.positions.empty()) {
                     size_t midIndex = match.positions.size() / 2;
                     origPos = match.positions[midIndex];
                 }
                 
-                if (origPos.first >= 0 && origPos.first < MAP_SIZE &&
-                    origPos.second >= 0 && origPos.second < MAP_SIZE) {
+                if (origPos.first >= 0 && origPos.first < static_cast<int>(map.size()) &&
+                    origPos.second >= 0 && origPos.second < static_cast<int>(map.size())) {
                     
                     SpecialType existingSpecial = map[origPos.first][origPos.second].special;
                     
@@ -164,12 +164,14 @@ void GameCycleProcessor::processSpecialGeneration(std::vector<std::vector<Fruit>
 }
 
 /**
- * @brief 标记匹配的水果为待消除
+ * @brief 标记匹配的水果为待消�?
  */
 void GameCycleProcessor::markMatchesForElimination(std::vector<std::vector<Fruit>>& map,
                                                     const std::vector<MatchResult>& matches,
                                                     const std::set<std::pair<int, int>>& specialPositions) {
-    for (const auto& match : matches) {
+    for (const auto& match : matches) {        //  记录匹配组的类型用于验证
+        FruitType matchType = match.fruitType;
+        
         for (const auto& pos : match.positions) {
             // 跳过刚生成的特殊元素
             if (specialPositions.find(pos) != specialPositions.end()) {
@@ -179,6 +181,15 @@ void GameCycleProcessor::markMatchesForElimination(std::vector<std::vector<Fruit
             if (map[pos.first][pos.second].type == FruitType::CANDY) {
                 continue;
             }
+            
+            
+            //  类型验证：确保位置上的水果类型与匹配类型一致
+            if (map[pos.first][pos.second].type != matchType && 
+                map[pos.first][pos.second].type != FruitType::EMPTY) {
+                // 类型不匹配，跳过（可能是其他轮次已经消除或移动了）
+                continue;
+            }
+            
             map[pos.first][pos.second].isMatched = true;
         }
     }
@@ -189,13 +200,13 @@ void GameCycleProcessor::markMatchesForElimination(std::vector<std::vector<Fruit
  */
 void GameCycleProcessor::triggerSpecialEffects(std::vector<std::vector<Fruit>>& map,
                                                 const std::set<std::pair<int, int>>& specialPositions) {
-    for (int row = 0; row < MAP_SIZE; row++) {
-        for (int col = 0; col < MAP_SIZE; col++) {
+    for (int row = 0; row < static_cast<int>(map.size()); row++) {
+        for (int col = 0; col < static_cast<int>(map.size()); col++) {
             if (map[row][col].isMatched && map[row][col].special != SpecialType::NONE) {
                 std::set<std::pair<int, int>> affectedPositions;
                 specialProcessor_.triggerSpecialEffect(map, row, col, affectedPositions);
                 
-                // 标记受影响的位置为消除
+                // 标记受影响的位置为消�?
                 for (const auto& pos : affectedPositions) {
                     // 跳过刚生成的特殊元素
                     if (specialPositions.find(pos) != specialPositions.end()) {
@@ -219,12 +230,13 @@ void GameCycleProcessor::triggerSpecialEffects(std::vector<std::vector<Fruit>>& 
  */
 void GameCycleProcessor::handleDeadlock(std::vector<std::vector<Fruit>>& map,
                                         bool& outShuffled,
-                                        std::vector<std::vector<Fruit>>& outNewMap) {
+                                        std::vector<std::vector<Fruit>>& outNewMap,
+                                        int mapSize) {
     outShuffled = false;
     
     if (!matchDetector_.hasPossibleMoves(map)) {
         // 没有可移动，重排地图
-        fruitGenerator_.shuffleMap(map, matchDetector_);
+        fruitGenerator_.shuffleMap(map, matchDetector_, mapSize);
         outShuffled = true;
         outNewMap = map;
     }
@@ -241,19 +253,19 @@ bool GameCycleProcessor::processPropElimination(std::vector<std::vector<Fruit>>&
         return false;
     }
     
-    // 1. 标记受影响的位置为待消除（跳过CANDY）
+    // 1. 标记受影响的位置为待消除（跳过CANDY�?
     for (const auto& pos : affectedPositions) {
         int row = pos.first;
         int col = pos.second;
-        if (row >= 0 && row < MAP_SIZE && col >= 0 && col < MAP_SIZE) {
+        if (row >= 0 && row < static_cast<int>(map.size()) && col >= 0 && col < static_cast<int>(map.size())) {
             if (map[row][col].type != FruitType::CANDY && map[row][col].type != FruitType::EMPTY) {
                 map[row][col].isMatched = true;
             }
         }
     }
     
-    // 2. 触发特殊元素效果（如果道具击中了炸弹）
-    std::set<std::pair<int, int>> emptySpecialPositions;  // 道具模式不生成新的特殊元素
+    // 2. 触发特殊元素效果（如果道具击中了炸弹�?
+    std::set<std::pair<int, int>> emptySpecialPositions;  // 道具模式不生成新的特殊元�?
     triggerSpecialEffects(map, emptySpecialPositions);
     
     // 3. 计算得分（道具模式不用连击）
@@ -266,12 +278,12 @@ bool GameCycleProcessor::processPropElimination(std::vector<std::vector<Fruit>>&
             virtualMatches.push_back(match);
         }
     }
-    outScore = scoreCalculator_.calculateTotalScore(virtualMatches, 1);  // 无连击
+    outScore = scoreCalculator_.calculateTotalScore(virtualMatches, 1);  // 无连�?
     
-    // 4. 记录并执行消除
+    // 4. 记录并执行消�?
     animRecorder_.recordElimination(map, emptySpecialPositions, outRound.elimination);
     
-    // 5. 处理下落和填充
+    // 5. 处理下落和填�?
     animRecorder_.recordFallAndRefill(map, fruitGenerator_, outRound.fall);
     
     return true;

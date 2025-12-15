@@ -52,10 +52,12 @@ public:
      * @param map 游戏地图（会被修改）
      * @param outShuffled 输出是否发生重排
      * @param outNewMap 输出重排后的地图
+     * @param mapSize 地图大小（默认使用 MAP_SIZE）
      */
     void handleDeadlock(std::vector<std::vector<Fruit>>& map,
                         bool& outShuffled,
-                        std::vector<std::vector<Fruit>>& outNewMap);
+                        std::vector<std::vector<Fruit>>& outNewMap,
+                        int mapSize = MAP_SIZE);
     
     /**
      * @brief 处理道具触发的单次消除

@@ -1,4 +1,4 @@
-#include "FallAnimationRenderer.h"
+﻿#include "FallAnimationRenderer.h"
 #include <QOpenGLTexture>
 
 FallAnimationRenderer::FallAnimationRenderer()
@@ -14,84 +14,81 @@ void FallAnimationRenderer::render(
     int roundIndex,
     float progress,
     const std::vector<std::vector<Fruit>>& snapshot,
-    const std::vector<std::vector<Fruit>>& engineMap,
+    const std::vector<std::vector<Fruit>>& /*engineMap*/,  // 不再使用engineMap
     float gridStartX,
     float gridStartY,
     float cellSize,
+    int mapSize,
     const std::vector<QOpenGLTexture*>& textures)
 {
     if (roundIndex < 0 || roundIndex >= static_cast<int>(animSeq.rounds.size())) {
         return;
     }
     
-    const FallStep& step = animSeq.rounds[roundIndex].fall;
+    const auto& round = animSeq.rounds[roundIndex];
     
-    // 绘制下落的旧水果
-    renderFallingFruits(step, progress, engineMap, gridStartX, gridStartY, cellSize, textures);
+    // 🔧 关键修复：使用动画序列中记录的精确移动数据，而不是比较snapshot和engineMap
+    // 这样可以正确处理多轮消除，因为每轮的移动数据都是独立记录的
     
-    // 绘制新生成的水果
-    renderNewFruits(step, progress, engineMap, gridStartX, gridStartY, cellSize, textures);
-}
-
-void FallAnimationRenderer::renderFallingFruits(
-    const FallStep& step,
-    float progress,
-    const std::vector<std::vector<Fruit>>& engineMap,
-    float gridStartX, float gridStartY, float cellSize,
-    const std::vector<QOpenGLTexture*>& textures)
-{
-    // 绘制下落的老元素（from→to 插值）
-    for (const auto& move : step.moves) {
+    // 1. 渲染移动中的水果（从FallMove获取类型）
+    for (const auto& move : round.fall.moves) {
+        int fromRow = move.fromRow;
+        int fromCol = move.fromCol;
         int toRow = move.toRow;
         int toCol = move.toCol;
-        if (toRow < 0 || toRow >= MAP_SIZE || toCol < 0 || toCol >= MAP_SIZE) {
+        
+        // 跳过无效移动
+        if (fromRow < 0 || fromRow >= mapSize || fromCol < 0 || fromCol >= mapSize) {
+            continue;
+        }
+        if (toRow < 0 || toRow >= mapSize || toCol < 0 || toCol >= mapSize) {
             continue;
         }
         
-        const Fruit& fruit = engineMap[toRow][toCol];
-        if (fruit.type == FruitType::EMPTY) {
-            continue;
+        // 🔧 关键修复：从FallMove直接获取水果类型（不再依赖snapshot）
+        if (move.type == FruitType::EMPTY) {
+            continue; // 空水果，跳过
         }
         
-        // 计算起始和目标Y坐标
-        float fromY = gridStartY + move.fromRow * cellSize;
-        float toY   = gridStartY + move.toRow   * cellSize;
-        float curY  = fromY + (toY - fromY) * progress;
-        float offsetY = curY - toY;
+        Fruit fruit;
+        fruit.type = move.type;
+        fruit.special = move.special;
         
-        // 绘制水果（使用引擎的最终数据，因为需要知道最终水果类型）
+        // 计算插值位置
+        float startY = gridStartY + fromRow * cellSize;
+        float endY = gridStartY + toRow * cellSize;
+        float curY = startY + (endY - startY) * progress;
+        float offsetY = curY - endY;
+        
+        // 在目标位置绘制（带偏移）
         drawFruit(toRow, toCol, fruit, 0.0f, offsetY, 1.0f, 1.0f,
                   gridStartX, gridStartY, cellSize, textures);
     }
-}
-
-void FallAnimationRenderer::renderNewFruits(
-    const FallStep& step,
-    float progress,
-    const std::vector<std::vector<Fruit>>& engineMap,
-    float gridStartX, float gridStartY, float cellSize,
-    const std::vector<QOpenGLTexture*>& textures)
-{
-    // 绘制新生成的水果（从网格上方掉入）
-    for (const auto& nf : step.newFruits) {
+    
+    // 2. 渲染新生成的水果（从动画数据获取类型）
+    for (const auto& nf : round.fall.newFruits) {
         int row = nf.row;
         int col = nf.col;
-        if (row < 0 || row >= MAP_SIZE || col < 0 || col >= MAP_SIZE) {
+        
+        if (row < 0 || row >= mapSize || col < 0 || col >= mapSize) {
             continue;
         }
         
-        const Fruit& fruit = engineMap[row][col];
-        if (fruit.type == FruitType::EMPTY) {
-            continue;
-        }
+        // 构造水果数据
+        Fruit fruit;
+        fruit.type = nf.type;
+        fruit.special = nf.special;
         
-        // 新水果从网格上方落下
-        float startY = gridStartY - cellSize * 1.5f;
-        float endY   = gridStartY + row * cellSize;
-        float curY   = startY + (endY - startY) * progress;
+        // 计算从顶部下落的起始位置
+        // 新水果从地图上方（row < 0的位置）下落到目标位置
+        // 根据目标row计算队列偏移
+        float queueOffset = static_cast<float>(row + 1);  // row 0 从 -1 格开始，row 1 从 -2 格开始...
+        float startY = gridStartY - cellSize * queueOffset;
+        float endY = gridStartY + row * cellSize;
+        float curY = startY + (endY - startY) * progress;
         float offsetY = curY - endY;
         
         drawFruit(row, col, fruit, 0.0f, offsetY, 1.0f, 1.0f,
                   gridStartX, gridStartY, cellSize, textures);
     }
-}
+} 

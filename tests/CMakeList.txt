@@ -19,6 +19,8 @@ set(CORE_SOURCES_FOR_TEST
     ../src/props/Hammer.cpp
     ../src/props/MagicWand.cpp
     ../src/props/Clamp.cpp
+    ../src/achievement/AchievementManager.h
+    ../src/data/Database.h
 )
 
 # 测试源文件
@@ -51,6 +53,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     target_link_libraries(${TEST_NAME}
         Qt6::Test
         Qt6::Core
+        Qt6::Sql
     )
     
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})

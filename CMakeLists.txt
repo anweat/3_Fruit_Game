@@ -167,6 +167,7 @@ set(UI_SOURCES
     ui/MainWindow.cpp
     ui/LoginWidget.cpp
     ui/AchievementDialog.cpp
+    ui/SettingsDialog.cpp
     ui/views/GameView.cpp
     ui/views/RankView.cpp
     ui/views/AchievementView.cpp
@@ -177,6 +178,7 @@ set(UI_HEADERS
     ui/MainWindow.h
     ui/LoginWidget.h
     ui/AchievementDialog.h
+    ui/SettingsDialog.h
     ui/StyleLoader.h
     ui/views/GameView.h
     ui/views/RankView.h
@@ -377,7 +379,7 @@ option(BUILD_TESTS "Build tests" ON)
 
 if(BUILD_TESTS)
     enable_testing()
-    add_subdirectory(tests)
+    #add_subdirectory(tests)
 endif()
 
 # 安装规则

@@ -129,7 +129,7 @@ private:
     /**
      * @brief 检查位置是否有效
      */
-    bool isValidPosition(int row, int col) const;
+    bool isValidPosition(const std::vector<std::vector<Fruit>>& map, int row, int col) const;
 };
 
 #endif // SPECIALEFFECTPROCESSOR_H

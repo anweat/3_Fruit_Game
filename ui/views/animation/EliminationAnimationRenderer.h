@@ -27,6 +27,7 @@ public:
         float gridStartX,
         float gridStartY,
         float cellSize,
+        int mapSize,
         const std::vector<QOpenGLTexture*>& textures
     ) override;
     
@@ -39,6 +40,7 @@ private:
         float progress,
         const std::vector<std::vector<Fruit>>& snapshot,
         float gridStartX, float gridStartY, float cellSize,
+        int mapSize,
         const std::vector<QOpenGLTexture*>& textures
     );
     
@@ -48,7 +50,8 @@ private:
     void renderBombEffects(
         const EliminationStep& step,
         float progress,
-        float gridStartX, float gridStartY, float cellSize
+        float gridStartX, float gridStartY, float cellSize,
+        int mapSize
     );
 };
 

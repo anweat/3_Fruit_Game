@@ -53,11 +53,9 @@ public:
     void applyElimination(const GameAnimationSequence& animSeq, int roundIndex);
     
     /**
-     * @brief 应用下落到快照（同步到引擎最终状态）
+     * @brief 应用下落到快照（从动画数据获取类型，不依赖engineMap）
      */
-    void applyFall(const GameAnimationSequence& animSeq, 
-                    int roundIndex,
-                    const std::vector<std::vector<Fruit>>& engineMap);
+    void applyFall(const GameAnimationSequence& animSeq, int roundIndex);
     
     /**
      * @brief 更新隐藏格子集合

@@ -136,8 +136,17 @@ void GameView::updateDisplay()
     update(); // 触发重绘
 }
 
-/**
- * @brief 初始化OpenGL
+/** * @brief 获取当前地图大小
+ */
+int GameView::getMapSize() const
+{
+    if (gameEngine_) {
+        return gameEngine_->getCurrentMapSize();
+    }
+    return 8; // 默认值
+}
+
+/** * @brief 初始化OpenGL
  */
 void GameView::initializeGL()
 {
@@ -166,6 +175,26 @@ void GameView::initializeGL()
 }
 
 /**
+ * @brief 更新地图布局（地图大小变化时调用）
+ */
+void GameView::updateMapLayout()
+{
+    // 重新计算网格布局
+    int w = width();
+    int h = height();
+    int minSize = qMin(w, h);
+    int mapSize = getMapSize();
+    cellSize_ = (minSize * 0.8f) / mapSize;  // 80%的空间用于网格
+    
+    float gridWidth = cellSize_ * mapSize;
+    gridStartX_ = (w - gridWidth) / 2.0f;
+    gridStartY_ = (h - gridWidth) / 2.0f;
+    
+    qDebug() << "Map layout updated: mapSize=" << mapSize << "cellSize=" << cellSize_;
+    update();  // 触发重绘
+}
+
+/**
  * @brief 窗口尺寸改变
  */
 void GameView::resizeGL(int w, int h)
@@ -174,9 +203,10 @@ void GameView::resizeGL(int w, int h)
     
     // 计算网格布局
     int minSize = qMin(w, h);
-    cellSize_ = (minSize * 0.8f) / MAP_SIZE;  // 80%的空间用于网格
+    int mapSize = getMapSize();
+    cellSize_ = (minSize * 0.8f) / mapSize;  // 80%的空间用于网格
     
-    float gridWidth = cellSize_ * MAP_SIZE;
+    float gridWidth = cellSize_ * mapSize;
     gridStartX_ = (w - gridWidth) / 2.0f;
     gridStartY_ = (h - gridWidth) / 2.0f;
     
@@ -207,7 +237,7 @@ void GameView::paintGL()
     // 绘制网格背景（奶油风格边框）
     glDisable(GL_TEXTURE_2D);
     glColor4f(1.0f, 0.83f, 0.71f, 1.0f);  // #FFD4B8 桃色
-    drawQuad(gridStartX_ - 10, gridStartY_ - 10, cellSize_ * MAP_SIZE + 20);
+    drawQuad(gridStartX_ - 10, gridStartY_ - 10, cellSize_ * getMapSize() + 20);
     
     // 绘制水果
     if (gameEngine_) {
@@ -286,8 +316,9 @@ void GameView::drawFruitGrid()
                       : gameEngine_->getMap();
     
     // 先绘制所有单元格背景（奶油白色）
-    for (int row = 0; row < MAP_SIZE; row++) {
-        for (int col = 0; col < MAP_SIZE; col++) {
+    int mapSize = getMapSize();
+    for (int row = 0; row < mapSize; row++) {
+        for (int col = 0; col < mapSize; col++) {
             float x = gridStartX_ + col * cellSize_;
             float y = gridStartY_ + row * cellSize_;
             glDisable(GL_TEXTURE_2D);
@@ -297,15 +328,15 @@ void GameView::drawFruitGrid()
     }
     
     // 绘制水果纹理
-    for (int row = 0; row < MAP_SIZE; row++) {
-        for (int col = 0; col < MAP_SIZE; col++) {
+    for (int row = 0; row < mapSize; row++) {
+        for (int col = 0; col < mapSize; col++) {
             const Fruit& fruit = map[row][col];
             // 跳过空位
             if (fruit.type == FruitType::EMPTY) {
                 continue;
             }
             
-            // 隐藏集合中的格子由动画层负责绘制
+            // 🔧 隐藏集合中的格子由动画层负责绘制（避免重影）
             if (snapshotManager_->isCellHidden(row, col)) {
                 continue;
             }
@@ -358,7 +389,8 @@ void GameView::renderCurrentAnimation()
             engineMap, 
             gridStartX_, 
             gridStartY_, 
-            cellSize_, 
+            cellSize_,
+            getMapSize(),
             fruitTextures_
         );
     }
@@ -504,7 +536,8 @@ bool GameView::screenToGrid(int x, int y, int& row, int& col)
     col = static_cast<int>(gridX / cellSize_);
     row = static_cast<int>(gridY / cellSize_);
     
-    return (row >= 0 && row < MAP_SIZE && col >= 0 && col < MAP_SIZE);
+    int mapSize = getMapSize();
+    return (row >= 0 && row < mapSize && col >= 0 && col < mapSize);
 }
 
 /**
@@ -671,12 +704,13 @@ void GameView::beginSwapAnimation(bool success)
 {
     if (!gameEngine_) return;
     
+    const auto& animSeq = gameEngine_->getLastAnimation();
+    
+    // 🔧 修复：交换动画需要隐藏原位置的水果，避免重影
+    snapshotManager_->updateHiddenCells(animSeq, 0, AnimPhase::SWAPPING);
+    
     // 开始交换动画（状态机）
     animController_->beginSwap(success);
-    
-    // 更新隐藏格子（隐藏交换的两个格子）
-    const auto& animSeq = gameEngine_->getLastAnimation();
-    snapshotManager_->updateHiddenCells(animSeq, 0, AnimPhase::SWAPPING);
 }
 
 /**
@@ -691,7 +725,7 @@ void GameView::beginEliminationStep(int roundIndex)
     // 开始消除动画（状态机）
     animController_->beginElimination(roundIndex);
     
-    // 更新隐藏格子（隐藏被消除的格子）
+    // 🔧 隐藏被消除的格子
     snapshotManager_->updateHiddenCells(animSeq, roundIndex, AnimPhase::ELIMINATING);
     
     // 📌 添加浮动分数显示（使用独立覆盖层）
@@ -711,7 +745,7 @@ void GameView::beginEliminationStep(int roundIndex)
                 centerY /= round.elimination.positions.size();
             } else {
                 // 默认显示在网格中心上方
-                centerX = gridStartX_ + (MAP_SIZE / 2.0f) * cellSize_;
+                centerX = gridStartX_ + (getMapSize() / 2.0f) * cellSize_;
                 centerY = gridStartY_ + cellSize_;
             }
             
@@ -732,14 +766,14 @@ void GameView::beginFallStep(int roundIndex)
     
     const auto& animSeq = gameEngine_->getLastAnimation();
     
-    // 应用消除到快照（消除完成后才开始下落）
+    // 🔧 关键：先清空snapshot中被消除的位置
     snapshotManager_->applyElimination(animSeq, roundIndex);
     
-    // 开始下落动画（状态机）
-    animController_->beginFall(roundIndex);
-    
-    // 更新隐藏格子（隐藏下落目标位置和新生成位置）
+    // 🔧 隐藏snapshot中即将下落的水果源位置（避免重影）
     snapshotManager_->updateHiddenCells(animSeq, roundIndex, AnimPhase::FALLING);
+    
+    // 开始下落动画
+    animController_->beginFall(roundIndex);
 }
 
 /**
@@ -769,6 +803,7 @@ void GameView::handlePhaseComplete(AnimPhase phase)
     switch (phase) {
         case AnimPhase::SWAPPING:
             // 交换动画完成
+            snapshotManager_->clearHiddenCells();  // 🔧 清除隐藏
             if (animController_->isSwapSuccess()) {
                 // 应用交换到快照
                 snapshotManager_->applySwap(
@@ -783,13 +818,11 @@ void GameView::handlePhaseComplete(AnimPhase phase)
                     // 没有消除，回到空闲
                     animController_->reset();
                     snapshotManager_->clearSnapshot();
-                    snapshotManager_->clearHiddenCells();
                 }
             } else {
                 // 交换失败，回到空闲
                 animController_->reset();
                 snapshotManager_->clearSnapshot();
-                snapshotManager_->clearHiddenCells();
             }
             break;
             
@@ -800,20 +833,29 @@ void GameView::handlePhaseComplete(AnimPhase phase)
             
         case AnimPhase::FALLING:
             // 下落动画完成
-            // 应用下落到快照
-            snapshotManager_->applyFall(animSeq, currentRound, gameEngine_->getMap());
+            // 🔧 关键修复：只应用当前轮次的下落变化，而不是直接覆盖为最终状态
+            snapshotManager_->applyFall(animSeq, currentRound);
+            snapshotManager_->clearHiddenCells();
             
-            // 检查是否有下一轮消除
-            if (currentRound + 1 < static_cast<int>(animSeq.rounds.size())) {
-                beginEliminationStep(currentRound + 1);
-            } else if (animSeq.shuffled) {
-                // 所有轮次完成，开始重排
-                beginShuffleAnimation();
-            } else {
-                // 全部完成，回到空闲
-                animController_->reset();
-                snapshotManager_->clearSnapshot();
-                snapshotManager_->clearHiddenCells();
+            // 🔧 添加150ms延迟，让玩家看清下落结果再进行下一轮消除
+            {
+                int nextRound = currentRound + 1;
+                int totalRounds = static_cast<int>(animSeq.rounds.size());
+                bool hasShuffled = animSeq.shuffled;
+                
+                QTimer::singleShot(150, this, [this, nextRound, totalRounds, hasShuffled]() {
+                    // 检查是否有下一轮消除
+                    if (nextRound < totalRounds) {
+                        beginEliminationStep(nextRound);
+                    } else if (hasShuffled) {
+                        // 所有轮次完成，开始重排
+                        beginShuffleAnimation();
+                    } else {
+                        // 全部完成，回到空闲
+                        animController_->reset();
+                        snapshotManager_->clearSnapshot();
+                    }
+                });
             }
             break;
             
@@ -821,7 +863,6 @@ void GameView::handlePhaseComplete(AnimPhase phase)
             // 重排动画完成，回到空闲
             animController_->reset();
             snapshotManager_->clearSnapshot();
-            snapshotManager_->clearHiddenCells();
             break;
             
         default:

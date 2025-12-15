@@ -68,6 +68,11 @@ private slots:
     void showAchievements();
     
     /**
+     * @brief 显示设置对话框
+     */
+    void showSettings();
+    
+    /**
      * @brief 道具按钮点击 - 锤子
      */
     void onHammerClicked();

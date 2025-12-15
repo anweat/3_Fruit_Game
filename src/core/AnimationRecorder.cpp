@@ -1,4 +1,4 @@
-#include "AnimationRecorder.h"
+﻿#include "AnimationRecorder.h"
 #include "GameEngine.h"  // 包含完整的结构体定义
 #include <algorithm>
 
@@ -19,59 +19,35 @@ void AnimationRecorder::recordFallAndRefill(std::vector<std::vector<Fruit>>& map
     outFallStep.moves.clear();
     outFallStep.newFruits.clear();
     
-    // 1. 处理下落
-    bool hasFall = fallProcessor_.hasEmptySlots(map);
+    // 🔧 关键修复：直接使用 processFall 的返回值，它已经正确记录了所有移动
+    auto allSteps = fallProcessor_.processFall(map, fruitGenerator, static_cast<int>(map.size()));
     
-    if (hasFall) {
-        for (int col = 0; col < MAP_SIZE; col++) {
-            // 记录下落前的位置
-            std::vector<std::tuple<int, int, Fruit>> before;
-            for (int row = 0; row < MAP_SIZE; ++row) {
-                if (map[row][col].type != FruitType::EMPTY) {
-                    before.emplace_back(row, col, map[row][col]);
-                }
-            }
-            
-            // 执行下落
-            fallProcessor_.processColumnFall(map, col);
-            
-            // 记录下落后的位置
-            std::vector<std::pair<int, int>> after;
-            for (int row = 0; row < MAP_SIZE; ++row) {
-                if (map[row][col].type != FruitType::EMPTY) {
-                    after.emplace_back(row, col);
-                }
-            }
-            
-            // 生成移动记录
-            size_t count = std::min(before.size(), after.size());
-            for (size_t i = 0; i < count; ++i) {
-                int fromRow = std::get<0>(before[i]);
-                int fromCol = std::get<1>(before[i]);
-                int toRow = after[i].first;
-                int toCol = after[i].second;
-                
-                if (fromRow != toRow || fromCol != toCol) {
-                    FallMove move;
-                    move.fromRow = fromRow;
-                    move.fromCol = fromCol;
-                    move.toRow = toRow;
-                    move.toCol = toCol;
-                    outFallStep.moves.push_back(move);
-                }
+    // allSteps[0] 是下落移动，allSteps[1] 是新生成的水果（如果有）
+    if (!allSteps.empty()) {
+        // 第一步：下落移动
+        for (const auto& move : allSteps[0]) {
+            FallMove fm;
+            fm.fromRow = move.first.first;
+            fm.fromCol = move.first.second;
+            fm.toRow = move.second.first;
+            fm.toCol = move.second.second;
+            // 🔧 关键：记录水果类型（此时map已经更新，从目标位置读取）
+            fm.type = map[fm.toRow][fm.toCol].type;
+            fm.special = map[fm.toRow][fm.toCol].special;
+            outFallStep.moves.push_back(fm);
+        }
+        
+        // 第二步：新生成的水果
+        if (allSteps.size() > 1) {
+            for (const auto& newPos : allSteps[1]) {
+                NewFruit nf;
+                nf.row = newPos.second.first;
+                nf.col = newPos.second.second;
+                nf.type = map[nf.row][nf.col].type;
+                nf.special = map[nf.row][nf.col].special;
+                outFallStep.newFruits.push_back(nf);
             }
         }
-    }
-    
-    // 2. 填充空位
-    auto newSlots = fallProcessor_.fillEmptySlots(map, fruitGenerator);
-    for (const auto& pos : newSlots) {
-        NewFruit nf;
-        nf.row = pos.first;
-        nf.col = pos.second;
-        nf.type = map[pos.first][pos.second].type;
-        nf.special = map[pos.first][pos.second].special;
-        outFallStep.newFruits.push_back(nf);
     }
 }
 
@@ -85,12 +61,12 @@ void AnimationRecorder::recordElimination(std::vector<std::vector<Fruit>>& map,
     outElimStep.types.clear();
     outElimStep.bombEffects.clear();
     
-    // 注意：这个方法假设调用前已经标记了 isMatched
+    // 注意：这个方法假设调用前已经标记�?isMatched
     // 这里只负责记录和执行消除，不负责标记
     
     // 处理特殊元素效果（被标记消除的特殊元素触发效果）
-    for (int row = 0; row < MAP_SIZE; row++) {
-        for (int col = 0; col < MAP_SIZE; col++) {
+    for (int row = 0; row < static_cast<int>(map.size()); row++) {
+        for (int col = 0; col < static_cast<int>(map.size()); col++) {
             if (map[row][col].isMatched) {
                 // 记录消除位置和原始类型（在消除前保存，用于成就检测）
                 outElimStep.positions.push_back({row, col});
@@ -105,8 +81,8 @@ void AnimationRecorder::recordElimination(std::vector<std::vector<Fruit>>& map,
     }
     
     // 执行消除
-    for (int row = 0; row < MAP_SIZE; row++) {
-        for (int col = 0; col < MAP_SIZE; col++) {
+    for (int row = 0; row < static_cast<int>(map.size()); row++) {
+        for (int col = 0; col < static_cast<int>(map.size()); col++) {
             if (map[row][col].isMatched) {
                 map[row][col].type = FruitType::EMPTY;
                 map[row][col].special = SpecialType::NONE;

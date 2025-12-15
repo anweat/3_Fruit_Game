@@ -32,6 +32,7 @@ public:
         float gridStartX,
         float gridStartY,
         float cellSize,
+        int mapSize,
         const std::vector<QOpenGLTexture*>& textures
     ) override;
     
@@ -43,6 +44,7 @@ private:
         float phase,
         const std::vector<std::vector<Fruit>>& snapshot,
         float gridStartX, float gridStartY, float cellSize,
+        int mapSize,
         const std::vector<QOpenGLTexture*>& textures
     );
     
@@ -53,6 +55,7 @@ private:
         float phase,
         const std::vector<std::vector<Fruit>>& newMap,
         float gridStartX, float gridStartY, float cellSize,
+        int mapSize,
         const std::vector<QOpenGLTexture*>& textures
     );
 };

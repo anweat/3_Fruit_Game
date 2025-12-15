@@ -48,8 +48,15 @@ public:
 private:
     /**
      * @brief 验证交换是否合法
+     * @param map 游戏地图
+     * @param row1 第一个位置行
+     * @param col1 第一个位置列
+     * @param row2 第二个位置行
+     * @param col2 第二个位置列
+     * @return 是否合法
      */
-    bool isValidSwap(int row1, int col1, int row2, int col2) const;
+    bool isValidSwap(const std::vector<std::vector<Fruit>>& map,
+                     int row1, int col1, int row2, int col2) const;
     
     /**
      * @brief 处理普通交换（检测匹配）

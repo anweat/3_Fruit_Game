@@ -1,6 +1,8 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "LoginWidget.h"
+#include "AchievementDialog.h"
+#include "SettingsDialog.h"
 #include "../src/achievement/AchievementManager.h"
 #include "../src/data/Database.h"
 #include <QDebug>
@@ -11,6 +13,7 @@
 #include <QTimer>
 #include <QStackedWidget>
 #include <QCoreApplication>
+#include <QSettings>
 
 /**
  * @brief 构造函数
@@ -213,6 +216,12 @@ void MainWindow::showMainMenu()
     if (ui->achievementsButton) {
         connect(ui->achievementsButton, &QPushButton::clicked, this, &MainWindow::showAchievements, Qt::UniqueConnection);
     }
+    if (ui->settingsButton) {
+        connect(ui->settingsButton, &QPushButton::clicked, this, &MainWindow::showSettings, Qt::UniqueConnection);
+    }
+    if (ui->settingsButton) {
+        connect(ui->settingsButton, &QPushButton::clicked, this, &MainWindow::showSettings, Qt::UniqueConnection);
+    }
     
     // 切换到主菜单页面（.ui 文件中的 mainMenuPage，index 0）
     if (ui && ui->stackedWidget) {
@@ -239,8 +248,12 @@ void MainWindow::startCasualMode()
         magicWandCount = props.magicWandCount;
     }
     
-    // 初始化游戏引擎
-    gameEngine_->initializeGame(savedScore);
+    // 🆕 读取设置中的地图大小
+    QSettings settings("FruitCrush", "GameSettings");
+    int mapSize = settings.value("casual/mapSize", 8).toInt();
+    
+    // 初始化游戏引擎（传入地图大小）
+    gameEngine_->initializeGame(savedScore, mapSize);
     gameEngine_->getPropManager().setAllProps(hammerCount, clampCount, magicWandCount);
     gameEngine_->startGameSession("Casual");
     
@@ -249,6 +262,7 @@ void MainWindow::startCasualMode()
         createGameViewWidget();
     }
     gameView_->setGameEngine(gameEngine_);
+    gameView_->updateMapLayout();  // 🆕 更新地图布局以适应新的地图大小
     
     // 切换到游戏界面
     if (!ui->stackedWidget->findChild<QWidget*>("gamePageWidget")) {
@@ -281,6 +295,15 @@ void MainWindow::showLeaderboard()
 void MainWindow::showAchievements()
 {
     AchievementDialog dialog(currentPlayerId_, currentPlayerName_, this);
+    dialog.exec();
+}
+
+/**
+ * @brief 显示设置对话框
+ */
+void MainWindow::showSettings()
+{
+    SettingsDialog dialog(this);
     dialog.exec();
 }
 
@@ -345,16 +368,17 @@ void MainWindow::displayGameMap()
     output += "\n";
     
     // 显示地图
-    output += "🌎 游戏地图 (8x8):\n";
+    int mapSize = static_cast<int>(map.size());
+    output += QString("🌎 游戏地图 (%1x%1):\n").arg(mapSize);
     output += "   ";
-    for (int col = 0; col < MAP_SIZE; col++) {
+    for (int col = 0; col < mapSize; col++) {
         output += QString(" %1 ").arg(col);
     }
     output += "\n";
     
-    for (int row = 0; row < MAP_SIZE; row++) {
+    for (int row = 0; row < mapSize; row++) {
         output += QString(" %1 ").arg(row);
-        for (int col = 0; col < MAP_SIZE; col++) {
+        for (int col = 0; col < mapSize; col++) {
             const Fruit& fruit = map[row][col];
             QString fruitSymbol;
             

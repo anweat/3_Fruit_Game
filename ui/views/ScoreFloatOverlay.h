@@ -15,6 +15,7 @@ struct FloatingScoreItem {
     float progress = 0.0f;  ///< 动画进度 [0, 1]
     float centerX = 0.0f;   ///< 显示中心X（父坐标系）
     float centerY = 0.0f;   ///< 显示中心Y（父坐标系）
+    int stackIndex = 0;     ///< 堆叠索引（用于垂直偏移）
     bool active = false;    ///< 是否激活
 };
 
@@ -66,7 +67,8 @@ private:
     
     static const int MAX_FLOATING_SCORES = 10;
     static constexpr float ANIMATION_DURATION = 1.5f;  ///< 动画持续时间（秒）
-    static constexpr float FLOAT_DISTANCE = 60.0f;     ///< 上浮距离（像素）
+    static constexpr float FLOAT_DISTANCE = 80.0f;     ///< 上浮距离（像素）
+    static constexpr float STACK_SPACING = 30.0f;      ///< 堆叠间隔（像素）
 };
 
 #endif // SCOREFLOATOVERLAY_H

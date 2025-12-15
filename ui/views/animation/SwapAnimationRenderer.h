@@ -32,6 +32,7 @@ public:
         float gridStartX,
         float gridStartY,
         float cellSize,
+        int mapSize,
         const std::vector<QOpenGLTexture*>& textures
     ) override;
     

@@ -30,6 +30,7 @@ public:
         combinedStyle += loadStyleFile(":/styles/login.qss");
         combinedStyle += loadStyleFile(":/styles/game.qss");
         combinedStyle += loadStyleFile(":/styles/achievement.qss");
+        combinedStyle += loadStyleFile(":/styles/settings.qss");
         
         return combinedStyle;
     }

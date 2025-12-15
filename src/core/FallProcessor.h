@@ -24,6 +24,7 @@ public:
      * @brief 处理地图上所有需要下落的水果
      * @param map 游戏地图引用
      * @param generator 水果生成器引用
+     * @param mapSize 地图大小（默认使用 MAP_SIZE）
      * @return 下落步骤列表，每个步骤包含所有同时下落的水果移动记录
      * 
      * 返回格式：vector<vector<pair<from, to>>>
@@ -32,7 +33,7 @@ public:
      * - pair<from, to>：水果从from位置移动到to位置
      */
     std::vector<std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>>>  
-        processFall(std::vector<std::vector<Fruit>>& map, FruitGenerator& generator);
+        processFall(std::vector<std::vector<Fruit>>& map, FruitGenerator& generator, int mapSize = MAP_SIZE);
     
     /**
      * @brief 处理单列的下落
@@ -47,10 +48,11 @@ public:
      * @brief 填充空位
      * @param map 游戏地图引用
      * @param generator 水果生成器引用
+     * @param mapSize 地图大小（默认使用 MAP_SIZE）
      * @return 新填充的水果位置列表
      */
     std::vector<std::pair<int, int>> 
-        fillEmptySlots(std::vector<std::vector<Fruit>>& map, FruitGenerator& generator);
+        fillEmptySlots(std::vector<std::vector<Fruit>>& map, FruitGenerator& generator, int mapSize = MAP_SIZE);
     
     /**
      * @brief 检查地图是否有空位

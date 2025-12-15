@@ -42,6 +42,7 @@ public:
      * @param gridStartX 网格起始X坐标
      * @param gridStartY 网格起始Y坐标
      * @param cellSize 格子大小
+     * @param mapSize 地图大小
      * @param textures 纹理数组
      */
     virtual void render(
@@ -53,6 +54,7 @@ public:
         float gridStartX,
         float gridStartY,
         float cellSize,
+        int mapSize,
         const std::vector<QOpenGLTexture*>& textures
     ) = 0;
     

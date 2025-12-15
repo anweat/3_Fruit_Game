@@ -1,6 +1,6 @@
 #include "GameEngine.h"
-#include "../achievement/AchievementManager.h"
-#include "../data/Database.h"
+#include "AchievementManager.h"
+#include "Database.h"
 #include <algorithm>
 #include <iostream>
 
@@ -8,6 +8,7 @@ GameEngine::GameEngine()
     : state_(GameState::IDLE)
     , currentScore_(0)
     , totalMatches_(0)
+    , mapSize_(MAP_SIZE)  // 默认使用全局常量
     , swapHandler_(matchDetector_, specialProcessor_)
     , animRecorder_(fallProcessor_)
     , cycleProcessor_(matchDetector_, specialGenerator_, specialProcessor_,
@@ -24,12 +25,15 @@ GameEngine::~GameEngine() {
 /**
  * @brief 初始化游戏
  */
-void GameEngine::initializeGame(int initialScore) {
+void GameEngine::initializeGame(int initialScore, int mapSize) {
+    // 0. 设置地图大小
+    mapSize_ = mapSize;
+    
     // 1. 初始化地图（确保无三连且有可移动）
-    fruitGenerator_.initializeMap(map_);
+    fruitGenerator_.initializeMap(map_, mapSize_);
     
     // 2. 确保地图可玩
-    fruitGenerator_.ensurePlayable(map_, matchDetector_);
+    fruitGenerator_.ensurePlayable(map_, matchDetector_, mapSize_);
     
     // 3. 重置游戏状态
     state_ = GameState::IDLE;
@@ -140,7 +144,7 @@ bool GameEngine::processGameCycle() {
     if (!hadElimination) {
         bool shuffled = false;
         std::vector<std::vector<Fruit>> newMap;
-        cycleProcessor_.handleDeadlock(map_, shuffled, newMap);
+        cycleProcessor_.handleDeadlock(map_, shuffled, newMap, mapSize_);
         
         if (shuffled) {
             lastAnimation_.shuffled = true;
@@ -241,7 +245,7 @@ bool GameEngine::useProp(ClickMode mode, int row, int col) {
     if (!hadMoreElimination) {
         bool shuffled = false;
         std::vector<std::vector<Fruit>> newMap;
-        cycleProcessor_.handleDeadlock(map_, shuffled, newMap);
+        cycleProcessor_.handleDeadlock(map_, shuffled, newMap, mapSize_);
         
         if (shuffled) {
             lastAnimation_.shuffled = true;
@@ -297,7 +301,7 @@ bool GameEngine::useClampProp(int row1, int col1, int row2, int col2) {
     if (!hadElimination) {
         bool shuffled = false;
         std::vector<std::vector<Fruit>> newMap;
-        cycleProcessor_.handleDeadlock(map_, shuffled, newMap);
+        cycleProcessor_.handleDeadlock(map_, shuffled, newMap, mapSize_);
         
         if (shuffled) {
             lastAnimation_.shuffled = true;

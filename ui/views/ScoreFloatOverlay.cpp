@@ -28,6 +28,14 @@ void ScoreFloatOverlay::addScore(int score, int combo, float centerX, float cent
 {
     if (score <= 0) return;
     
+    // 🔧 计算当前活跃的分数数量，用于堆叠偏移
+    int activeCount = 0;
+    for (const auto& fs : floatingScores_) {
+        if (fs.active) {
+            activeCount++;
+        }
+    }
+    
     // 查找空闲槽位
     int slot = -1;
     for (size_t i = 0; i < floatingScores_.size(); ++i) {
@@ -59,6 +67,7 @@ void ScoreFloatOverlay::addScore(int score, int combo, float centerX, float cent
         floatingScores_[slot].progress = 0.0f;
         floatingScores_[slot].centerX = centerX;
         floatingScores_[slot].centerY = centerY;
+        floatingScores_[slot].stackIndex = activeCount;  // 🔧 设置堆叠索引
         floatingScores_[slot].active = true;
     }
 }
@@ -73,10 +82,12 @@ void ScoreFloatOverlay::clear()
 void ScoreFloatOverlay::onAnimationTick()
 {
     bool hasActive = false;
+    bool hadActiveLastFrame = false;
     float deltaProgress = 0.016f / ANIMATION_DURATION;  // 16ms / 1500ms
     
     for (auto& fs : floatingScores_) {
         if (fs.active) {
+            hadActiveLastFrame = true;
             fs.progress += deltaProgress;
             if (fs.progress >= 1.0f) {
                 fs.active = false;
@@ -86,8 +97,8 @@ void ScoreFloatOverlay::onAnimationTick()
         }
     }
     
-    // 只有有活跃分数时才重绘
-    if (hasActive) {
+    // 🔧 关键修复：如果上一帧有活跃的分数（即使现在全部结束），也要重绘以清除残留
+    if (hasActive || hadActiveLastFrame) {
         update();
     }
 }
@@ -96,15 +107,18 @@ void ScoreFloatOverlay::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
     
+    // 🔧 关键修复：使用eraseRect清除背景，比CompositionMode_Clear更可靠
     QPainter painter(this);
+    painter.eraseRect(rect());
+    
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setRenderHint(QPainter::TextAntialiasing);
     
     for (const auto& fs : floatingScores_) {
         if (!fs.active) continue;
         
-        // 计算上浮偏移
-        float offsetY = -FLOAT_DISTANCE * fs.progress;
+        // 计算上浮偏移 + 堆叠偏移（让多个分数形成一长串）
+        float offsetY = -FLOAT_DISTANCE * fs.progress - STACK_SPACING * fs.stackIndex;
         
         // 计算透明度（后半段淡出）
         float alpha = 1.0f;
@@ -143,13 +157,8 @@ void ScoreFloatOverlay::paintEvent(QPaintEvent* event)
         float x = fs.centerX - textWidth / 2.0f;
         float y = fs.centerY + offsetY;
         
-        // 绘制阴影
-        QColor shadowColor(0, 0, 0, static_cast<int>(180 * alpha));
-        painter.setPen(shadowColor);
-        painter.drawText(static_cast<int>(x + 2), static_cast<int>(y + 2), text);
-        
-        // 绘制描边（高分时）
-        if (fs.score >= 200 || fs.combo >= 3) {
+        // 绘制描边（高分或连击时）
+        if (fs.score >= 100 || fs.combo >= 2) {
             QColor outlineColor(0, 0, 0, static_cast<int>(200 * alpha));
             painter.setPen(outlineColor);
             for (int dx = -1; dx <= 1; ++dx) {
@@ -159,6 +168,11 @@ void ScoreFloatOverlay::paintEvent(QPaintEvent* event)
                     }
                 }
             }
+        } else {
+            // 普通分数只绘制阴影
+            QColor shadowColor(0, 0, 0, static_cast<int>(150 * alpha));
+            painter.setPen(shadowColor);
+            painter.drawText(static_cast<int>(x + 2), static_cast<int>(y + 2), text);
         }
         
         // 绘制主文本

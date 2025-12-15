@@ -8,6 +8,9 @@
 #include <functional>
 #include "GameEngine.h"
 
+// 前向声明
+class GameView;
+
 /**
  * @brief 选中状态数据结构
  */
@@ -113,7 +116,7 @@ signals:
     
 private:
     // 坐标转换
-    bool screenToGrid(const QPoint& screenPos, const QRect& gridRect, float cellSize, int& row, int& col);
+    bool screenToGrid(const QPoint& screenPos, const QRect& gridRect, float cellSize, int mapSize, int& row, int& col);
     
     // 切换点击策略
     void updateClickStrategy();

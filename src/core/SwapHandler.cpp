@@ -29,8 +29,8 @@ bool SwapHandler::executeSwap(std::vector<std::vector<Fruit>>& map,
     outSwapStep.col2 = col2;
     outSwapStep.success = false;
     
-    // 1. 验证交换合法性
-    if (!isValidSwap(row1, col1, row2, col2)) {
+    // 1. 验证交换合法�?
+    if (!isValidSwap(map, row1, col1, row2, col2)) {
         return false;
     }
     
@@ -45,7 +45,7 @@ bool SwapHandler::executeSwap(std::vector<std::vector<Fruit>>& map,
         return true;
     }
     
-    // 3. 检查是否两个都是特殊元素
+    // 3. 检查是否两个都是特殊元�?
     bool hasSpecial1 = map[row1][col1].special != SpecialType::NONE;
     bool hasSpecial2 = map[row2][col2].special != SpecialType::NONE;
     
@@ -56,7 +56,7 @@ bool SwapHandler::executeSwap(std::vector<std::vector<Fruit>>& map,
         return true;
     }
     
-    // 4. 普通交换
+    // 4. 普通交�?
     bool hasMatch = handleNormalSwap(map, row1, col1, row2, col2);
     outSwapStep.success = hasMatch;
     return hasMatch;
@@ -65,21 +65,20 @@ bool SwapHandler::executeSwap(std::vector<std::vector<Fruit>>& map,
 /**
  * @brief 验证交换是否合法
  */
-bool SwapHandler::isValidSwap(int row1, int col1, int row2, int col2) const {
-    // 检查位置合法性
-    if (row1 < 0 || row1 >= MAP_SIZE || col1 < 0 || col1 >= MAP_SIZE ||
-        row2 < 0 || row2 >= MAP_SIZE || col2 < 0 || col2 >= MAP_SIZE) {
+bool SwapHandler::isValidSwap(const std::vector<std::vector<Fruit>>& map, int row1, int col1, int row2, int col2) const {
+    // 检查位置合法�?
+    if (row1 < 0 || row1 >= static_cast<int>(map.size()) || col1 < 0 || col1 >= static_cast<int>(map.size()) || row2 < 0 || row2 >= static_cast<int>(map.size()) || col2 < 0 || col2 >= static_cast<int>(map.size())) {
         return false;
     }
     
-    // 检查是否相邻
+    // 检查是否相�?
     int dr = abs(row1 - row2);
     int dc = abs(col1 - col2);
     return (dr == 1 && dc == 0) || (dr == 0 && dc == 1);
 }
 
 /**
- * @brief 处理普通交换
+ * @brief 处理普通交�?
  */
 bool SwapHandler::handleNormalSwap(std::vector<std::vector<Fruit>>& map,
                                     int row1, int col1, int row2, int col2) {
@@ -122,12 +121,12 @@ void SwapHandler::handleCandySwap(std::vector<std::vector<Fruit>>& map,
     };
     
     if (isCandy1 && isCandy2) {
-        // ========== CANDY + CANDY: 清除所有元素 ==========
+        // ========== CANDY + CANDY: 清除所有元�?==========
         recordRainbowEffect(row1, col1);
         recordRainbowEffect(row2, col2);
         
-        for (int r = 0; r < MAP_SIZE; ++r) {
-            for (int c = 0; c < MAP_SIZE; ++c) {
+        for (int r = 0; r < static_cast<int>(map.size()); ++r) {
+            for (int c = 0; c < static_cast<int>(map.size()); ++c) {
                 if (map[r][c].type != FruitType::EMPTY) {
                     candyRound.elimination.positions.push_back({r, c});
                     map[r][c].type = FruitType::EMPTY;
@@ -136,7 +135,7 @@ void SwapHandler::handleCandySwap(std::vector<std::vector<Fruit>>& map,
             }
         }
     } else {
-        // 确定 CANDY 和非 CANDY 的位置
+        // 确定 CANDY 和非 CANDY 的位�?
         int candyRow, candyCol, otherRow, otherCol;
         if (isCandy1) {
             candyRow = row1; candyCol = col1;
@@ -154,8 +153,8 @@ void SwapHandler::handleCandySwap(std::vector<std::vector<Fruit>>& map,
         if (otherSpecial != SpecialType::NONE && otherSpecial != SpecialType::RAINBOW) {
             // ========== CANDY + 炸弹: 转化所有该类型为随机炸弹并引爆 ==========
             std::vector<std::pair<int, int>> targets;
-            for (int r = 0; r < MAP_SIZE; ++r) {
-                for (int c = 0; c < MAP_SIZE; ++c) {
+            for (int r = 0; r < static_cast<int>(map.size()); ++r) {
+                for (int c = 0; c < static_cast<int>(map.size()); ++c) {
                     if (map[r][c].type == targetType) {
                         targets.push_back({r, c});
                     }
@@ -189,7 +188,7 @@ void SwapHandler::handleCandySwap(std::vector<std::vector<Fruit>>& map,
                 std::set<std::pair<int, int>> affected;
                 specialProcessor_.triggerSpecialEffect(map, r, c, affected);
                 
-                // 标记消除（跳过 CANDY）
+                // 标记消除（跳�?CANDY�?
                 for (const auto& apos : affected) {
                     if (map[apos.first][apos.second].type == FruitType::CANDY) {
                         continue;
@@ -202,13 +201,13 @@ void SwapHandler::handleCandySwap(std::vector<std::vector<Fruit>>& map,
                 }
             }
         } else {
-            // ========== CANDY + 普通: 消除所有该类型 ==========
+            // ========== CANDY + 普�? 消除所有该类型 ==========
             candyRound.elimination.positions.push_back({candyRow, candyCol});
             map[candyRow][candyCol].type = FruitType::EMPTY;
             map[candyRow][candyCol].special = SpecialType::NONE;
             
-            for (int r = 0; r < MAP_SIZE; ++r) {
-                for (int c = 0; c < MAP_SIZE; ++c) {
+            for (int r = 0; r < static_cast<int>(map.size()); ++r) {
+                for (int c = 0; c < static_cast<int>(map.size()); ++c) {
                     if (map[r][c].type == targetType) {
                         candyRound.elimination.positions.push_back({r, c});
                         map[r][c].type = FruitType::EMPTY;
@@ -230,7 +229,7 @@ void SwapHandler::handleSpecialCombo(std::vector<std::vector<Fruit>>& map,
                                       std::vector<GameRound>& outRounds) {
     GameRound bombRound;
     
-    // 记录两个炸弹的特效
+    // 记录两个炸弹的特�?
     recordBombEffect(row1, col1, map[row1][col1].special, bombRound.elimination.bombEffects);
     recordBombEffect(row2, col2, map[row2][col2].special, bombRound.elimination.bombEffects);
     
@@ -238,7 +237,7 @@ void SwapHandler::handleSpecialCombo(std::vector<std::vector<Fruit>>& map,
     std::set<std::pair<int, int>> affectedPositions;
     specialProcessor_.triggerCombinationEffect(map, row1, col1, row2, col2, affectedPositions);
     
-    // 消除受影响的位置（跳过 CANDY）
+    // 消除受影响的位置（跳�?CANDY�?
     for (const auto& pos : affectedPositions) {
         if (map[pos.first][pos.second].type == FruitType::CANDY) {
             continue;

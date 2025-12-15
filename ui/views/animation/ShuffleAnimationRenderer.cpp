@@ -18,6 +18,7 @@ void ShuffleAnimationRenderer::render(
     float gridStartX,
     float gridStartY,
     float cellSize,
+    int mapSize,
     const std::vector<QOpenGLTexture*>& textures)
 {
     if (!animSeq.shuffled || animSeq.newMapAfterShuffle.empty()) {
@@ -32,12 +33,12 @@ void ShuffleAnimationRenderer::render(
     
     if (progress < 0.5f) {
         // 第一阶段：绘制快照中的旧元素（淡出）
-        float phase = progress / 0.5f;  // 0 → 1
-        renderFadeOut(phase, snapshot, gridStartX, gridStartY, cellSize, textures);
+        float phase = progress / 0.5f;  // 0 �?1
+        renderFadeOut(phase, snapshot, gridStartX, gridStartY, cellSize, mapSize, textures);
     } else {
         // 第二阶段：绘制新地图中的元素（淡入）
-        float phase = (progress - 0.5f) / 0.5f;  // 0 → 1
-        renderFadeIn(phase, animSeq.newMapAfterShuffle, gridStartX, gridStartY, cellSize, textures);
+        float phase = (progress - 0.5f) / 0.5f;  // 0 �?1
+        renderFadeIn(phase, animSeq.newMapAfterShuffle, gridStartX, gridStartY, cellSize, mapSize, textures);
     }
 }
 
@@ -45,13 +46,14 @@ void ShuffleAnimationRenderer::renderFadeOut(
     float phase,
     const std::vector<std::vector<Fruit>>& snapshot,
     float gridStartX, float gridStartY, float cellSize,
+    int mapSize,
     const std::vector<QOpenGLTexture*>& textures)
 {
     float alpha = 1.0f - phase;
     float scale = 1.0f - phase * 0.3f;
     
-    for (int row = 0; row < MAP_SIZE; ++row) {
-        for (int col = 0; col < MAP_SIZE; ++col) {
+    for (int row = 0; row < mapSize; ++row) {
+        for (int col = 0; col < mapSize; ++col) {
             const Fruit& fruit = snapshot[row][col];
             if (fruit.type == FruitType::EMPTY) {
                 continue;
@@ -67,13 +69,14 @@ void ShuffleAnimationRenderer::renderFadeIn(
     float phase,
     const std::vector<std::vector<Fruit>>& newMap,
     float gridStartX, float gridStartY, float cellSize,
+    int mapSize,
     const std::vector<QOpenGLTexture*>& textures)
 {
     float alpha = phase;
     float scale = 0.7f + phase * 0.3f;
     
-    for (int row = 0; row < MAP_SIZE; ++row) {
-        for (int col = 0; col < MAP_SIZE; ++col) {
+    for (int row = 0; row < mapSize; ++row) {
+        for (int col = 0; col < mapSize; ++col) {
             const Fruit& fruit = newMap[row][col];
             if (fruit.type == FruitType::EMPTY) {
                 continue;

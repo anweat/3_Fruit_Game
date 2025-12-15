@@ -18,6 +18,7 @@ void EliminationAnimationRenderer::render(
     float gridStartX,
     float gridStartY,
     float cellSize,
+    int mapSize,
     const std::vector<QOpenGLTexture*>& textures)
 {
     if (roundIndex < 0 || roundIndex >= static_cast<int>(animSeq.rounds.size())) {
@@ -27,10 +28,10 @@ void EliminationAnimationRenderer::render(
     const EliminationStep& step = animSeq.rounds[roundIndex].elimination;
     
     // 绘制消除效果
-    renderElimination(step, progress, snapshot, gridStartX, gridStartY, cellSize, textures);
+    renderElimination(step, progress, snapshot, gridStartX, gridStartY, cellSize, mapSize, textures);
     
     // 绘制炸弹特效
-    renderBombEffects(step, progress, gridStartX, gridStartY, cellSize);
+    renderBombEffects(step, progress, gridStartX, gridStartY, cellSize, mapSize);
 }
 
 void EliminationAnimationRenderer::renderElimination(
@@ -38,6 +39,7 @@ void EliminationAnimationRenderer::renderElimination(
     float progress,
     const std::vector<std::vector<Fruit>>& snapshot,
     float gridStartX, float gridStartY, float cellSize,
+    int mapSize,
     const std::vector<QOpenGLTexture*>& textures)
 {
     if (step.positions.empty()) {
@@ -53,7 +55,7 @@ void EliminationAnimationRenderer::renderElimination(
     for (const auto& pos : step.positions) {
         int row = pos.first;
         int col = pos.second;
-        if (row < 0 || row >= MAP_SIZE || col < 0 || col >= MAP_SIZE) {
+        if (row < 0 || row >= mapSize || col < 0 || col >= mapSize) {
             continue;
         }
         
@@ -71,7 +73,7 @@ void EliminationAnimationRenderer::renderElimination(
         float x = centerX - size * 0.5f;
         float y = centerY - size * 0.5f;
         
-        // 绘制缩小的水果纹理
+        // 绘制缩小的水果纹�?
         int textureIndex = static_cast<int>(fruit.type);
         if (fruit.type == FruitType::CANDY) {
             textureIndex = 6;
@@ -102,7 +104,8 @@ void EliminationAnimationRenderer::renderElimination(
 void EliminationAnimationRenderer::renderBombEffects(
     const EliminationStep& step,
     float progress,
-    float gridStartX, float gridStartY, float cellSize)
+    float gridStartX, float gridStartY, float cellSize,
+    int mapSize)
 {
     if (step.bombEffects.empty()) {
         return;
@@ -118,7 +121,7 @@ void EliminationAnimationRenderer::renderBombEffects(
                 // 横排特效：白色长条覆盖整行，逐渐变窄变淡
                 float rowY = gridStartY + effect.row * cellSize;
                 float startX = gridStartX;
-                float fullWidth = cellSize * MAP_SIZE;
+                float fullWidth = cellSize * mapSize;
                 float centerY = rowY + cellSize * 0.5f;
                 
                 float height = cellSize * (1.0f - progress);
@@ -138,7 +141,7 @@ void EliminationAnimationRenderer::renderBombEffects(
                 // 竖排特效：白色长条覆盖整列，逐渐变窄变淡
                 float colX = gridStartX + effect.col * cellSize;
                 float startY = gridStartY;
-                float fullHeight = cellSize * MAP_SIZE;
+                float fullHeight = cellSize * mapSize;
                 float centerX = colX + cellSize * 0.5f;
                 
                 float width = cellSize * (1.0f - progress);
@@ -174,10 +177,10 @@ void EliminationAnimationRenderer::renderBombEffects(
             }
             
             case BombEffectType::RAINBOW: {
-                // 彩虹特效：全屏白色闪光
+                // 彩虹特效：全屏白色闪�?
                 float startX = gridStartX;
                 float startY = gridStartY;
-                float fullSize = cellSize * MAP_SIZE;
+                float fullSize = cellSize * mapSize;
                 float alpha = 0.5f * (1.0f - progress);
                 
                 glColor4f(1.0f, 1.0f, 1.0f, alpha);

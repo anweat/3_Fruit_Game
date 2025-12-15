@@ -1,0 +1,154 @@
+/* ============================================
+   设置对话框样式
+   ============================================ */
+
+/* 设置对话框窗口 */
+SettingsDialog {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF8F0, stop:1 #FFF0E6);
+}
+
+/* 滚动区域 */
+#settingsScrollArea {
+    border: none;
+    background: transparent;
+}
+
+/* 设置组框 */
+#settingsGroupBox {
+    border: 2px solid #FFB6A3;
+    border-radius: 12px;
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #FFFFFF;
+    font-size: 14px;
+    font-weight: bold;
+    color: #8B4513;
+}
+
+#settingsGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 5px 15px;
+    background-color: #FFD4B8;
+    border-radius: 8px;
+    color: #8B4513;
+}
+
+/* 设置标签 */
+#settingLabel {
+    font-size: 14px;
+    font-weight: bold;
+    color: #8B4513;
+    padding: 5px 0;
+}
+
+/* 设置值标签 */
+#settingValueLabel {
+    font-size: 16px;
+    font-weight: bold;
+    color: #FF6B35;
+    background-color: #FFF5ED;
+    border: 2px solid #FFD4B8;
+    border-radius: 8px;
+    padding: 5px 10px;
+}
+
+/* 设置提示标签 */
+#settingHintLabel {
+    font-size: 12px;
+    color: #A0522D;
+    font-style: italic;
+    padding: 3px 0;
+}
+
+/* 滑动条 */
+#mapSizeSlider::groove:horizontal {
+    border: 2px solid #FFB6A3;
+    height: 8px;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                stop:0 #FFF5ED, stop:1 #FFE4D6);
+    border-radius: 4px;
+}
+
+#mapSizeSlider::handle:horizontal {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD4B8, stop:1 #FFB6A3);
+    border: 2px solid #FF6B35;
+    width: 20px;
+    height: 20px;
+    margin: -8px 0;
+    border-radius: 10px;
+}
+
+#mapSizeSlider::handle:horizontal:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFE4D6, stop:1 #FFD4B8);
+    border: 3px solid #FF6B35;
+}
+
+#mapSizeSlider::handle:horizontal:pressed {
+    background: #FF6B35;
+    border: 2px solid #8B4513;
+}
+
+#mapSizeSlider::sub-page:horizontal {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                stop:0 #FFB6A3, stop:1 #FF6B35);
+    border: 2px solid #FFB6A3;
+    height: 8px;
+    border-radius: 4px;
+}
+
+#mapSizeSlider::add-page:horizontal {
+    background: #FFF5ED;
+    border: 2px solid #FFD4B8;
+    height: 8px;
+    border-radius: 4px;
+}
+
+/* 保存按钮 */
+#saveButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #90EE90, stop:1 #32CD32);
+    border: 2px solid #228B22;
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 20px;
+}
+
+#saveButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #9AFF9A, stop:1 #3FE73F);
+    border: 3px solid #228B22;
+}
+
+#saveButton:pressed {
+    background: #228B22;
+    border: 2px solid #006400;
+}
+
+/* 取消按钮 */
+#cancelButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFB6A3, stop:1 #FF6B35);
+    border: 2px solid #FF6B35;
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 20px;
+}
+
+#cancelButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD4B8, stop:1 #FFB6A3);
+    border: 3px solid #FF6B35;
+}
+
+#cancelButton:pressed {
+    background: #FF6B35;
+    border: 2px solid #8B4513;
+}

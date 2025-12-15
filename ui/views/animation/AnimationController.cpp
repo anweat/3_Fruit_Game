@@ -92,9 +92,9 @@ float AnimationController::getCurrentPhaseDuration() const
         case AnimPhase::SWAPPING:
             return 200.0f;  // 200ms
         case AnimPhase::ELIMINATING:
-            return 220.0f;  // 220ms
+            return 250.0f;  // 250ms（稍微慢点）
         case AnimPhase::FALLING:
-            return 300.0f;  // 300ms (增加时长，确保下落动画完整)
+            return 500.0f;  // 500ms（让下落更流畅、清晰）
         case AnimPhase::SHUFFLING:
             return 600.0f;  // 600ms
         case AnimPhase::IDLE:
