@@ -35,6 +35,9 @@ MainWindow::MainWindow(QWidget *parent)
     , hammerCountLabel_(nullptr)
     , clampCountLabel_(nullptr)
     , magicWandCountLabel_(nullptr)
+    , buyHammerButton_(nullptr)
+    , buyClampButton_(nullptr)
+    , buyMagicWandButton_(nullptr)
     , achievementNotification_(nullptr)
 {
     ui->setupUi(this);
@@ -462,15 +465,13 @@ void MainWindow::createGameViewWidget()
     controlLayout->setSpacing(15);
     
     // 分数显示
-    scoreLabel_ = new QLabel("💯 分数: 0 | 🔥 连击: 0");
-    scoreLabel_->setStyleSheet("QLabel { font-size: 16px; font-weight: bold; color: #FFD700; padding: 10px; }");
+    scoreLabel_ = new QLabel("💯 分数: 0");
     controlLayout->addWidget(scoreLabel_);
     
     controlLayout->addStretch();
     
     // 道具栏标签
     QLabel* propLabel = new QLabel("🎮 道具:");
-    propLabel->setStyleSheet("QLabel { font-size: 14px; font-weight: bold; padding: 5px; }");
     controlLayout->addWidget(propLabel);
     
     // 锤子道具
@@ -481,26 +482,16 @@ void MainWindow::createGameViewWidget()
     hammerButton_->setIconSize(QSize(48, 48));
     hammerButton_->setFixedSize(60, 60);
     hammerButton_->setToolTip("🔨 锤子 - 消除单个水果");
-    hammerButton_->setStyleSheet(
-        "QPushButton { "
-        "  border: 2px solid #8B4513; "
-        "  border-radius: 8px; "
-        "  background-color: #FFF8DC; "
-        "} "
-        "QPushButton:hover { "
-        "  background-color: #FFE4B5; "
-        "  border: 3px solid #A0522D; "
-        "} "
-        "QPushButton:pressed { "
-        "  background-color: #DEB887; "
-        "}"
-    );
     connect(hammerButton_, &QPushButton::clicked, this, &MainWindow::onHammerClicked);
     hammerCountLabel_ = new QLabel("x 3");
     hammerCountLabel_->setAlignment(Qt::AlignCenter);
-    hammerCountLabel_->setStyleSheet("QLabel { font-size: 12px; font-weight: bold; }");
+    buyHammerButton_ = new QPushButton(QString("💰%1").arg(HAMMER_PRICE));
+    buyHammerButton_->setFixedSize(60, 24);
+    buyHammerButton_->setToolTip("购买锤子 (消耗200分)");
+    connect(buyHammerButton_, &QPushButton::clicked, this, &MainWindow::onBuyHammer);
     hammerLayout->addWidget(hammerButton_);
     hammerLayout->addWidget(hammerCountLabel_);
+    hammerLayout->addWidget(buyHammerButton_);
     controlLayout->addLayout(hammerLayout);
     
     // 夹子道具
@@ -511,26 +502,16 @@ void MainWindow::createGameViewWidget()
     clampButton_->setIconSize(QSize(48, 48));
     clampButton_->setFixedSize(60, 60);
     clampButton_->setToolTip("✂️ 夹子 - 强制交换相邻水果");
-    clampButton_->setStyleSheet(
-        "QPushButton { "
-        "  border: 2px solid #4169E1; "
-        "  border-radius: 8px; "
-        "  background-color: #F0F8FF; "
-        "} "
-        "QPushButton:hover { "
-        "  background-color: #E6F3FF; "
-        "  border: 3px solid #1E90FF; "
-        "} "
-        "QPushButton:pressed { "
-        "  background-color: #ADD8E6; "
-        "}"
-    );
     connect(clampButton_, &QPushButton::clicked, this, &MainWindow::onClampClicked);
     clampCountLabel_ = new QLabel("x 3");
     clampCountLabel_->setAlignment(Qt::AlignCenter);
-    clampCountLabel_->setStyleSheet("QLabel { font-size: 12px; font-weight: bold; }");
+    buyClampButton_ = new QPushButton(QString("💰%1").arg(CLAMP_PRICE));
+    buyClampButton_->setFixedSize(60, 24);
+    buyClampButton_->setToolTip("购买夹子 (消耗200分)");
+    connect(buyClampButton_, &QPushButton::clicked, this, &MainWindow::onBuyClamp);
     clampLayout->addWidget(clampButton_);
     clampLayout->addWidget(clampCountLabel_);
+    clampLayout->addWidget(buyClampButton_);
     controlLayout->addLayout(clampLayout);
     
     // 魔法棒道具
@@ -541,26 +522,16 @@ void MainWindow::createGameViewWidget()
     magicWandButton_->setIconSize(QSize(48, 48));
     magicWandButton_->setFixedSize(60, 60);
     magicWandButton_->setToolTip("✨ 魔法棒 - 消除所有同类型水果");
-    magicWandButton_->setStyleSheet(
-        "QPushButton { "
-        "  border: 2px solid #9370DB; "
-        "  border-radius: 8px; "
-        "  background-color: #F8F0FF; "
-        "} "
-        "QPushButton:hover { "
-        "  background-color: #F0E6FF; "
-        "  border: 3px solid #8A2BE2; "
-        "} "
-        "QPushButton:pressed { "
-        "  background-color: #DDA0DD; "
-        "}"
-    );
     connect(magicWandButton_, &QPushButton::clicked, this, &MainWindow::onMagicWandClicked);
     magicWandCountLabel_ = new QLabel("x 3");
     magicWandCountLabel_->setAlignment(Qt::AlignCenter);
-    magicWandCountLabel_->setStyleSheet("QLabel { font-size: 12px; font-weight: bold; }");
+    buyMagicWandButton_ = new QPushButton(QString("💰%1").arg(MAGIC_WAND_PRICE));
+    buyMagicWandButton_->setFixedSize(60, 24);
+    buyMagicWandButton_->setToolTip("购买魔法棒 (消耗400分)");
+    connect(buyMagicWandButton_, &QPushButton::clicked, this, &MainWindow::onBuyMagicWand);
     wandLayout->addWidget(magicWandButton_);
     wandLayout->addWidget(magicWandCountLabel_);
+    wandLayout->addWidget(buyMagicWandButton_);
     controlLayout->addLayout(wandLayout);
     
     controlLayout->addSpacing(20);
@@ -578,8 +549,7 @@ void MainWindow::createGameViewWidget()
     connect(updateTimer, &QTimer::timeout, this, [this]() {
         if (gameEngine_ && scoreLabel_) {
             int score = gameEngine_->getCurrentScore();
-            int combo = gameEngine_->getComboCount();
-            scoreLabel_->setText(QString("💯 分数: %1 | 🔥 连击: %2").arg(score).arg(combo));
+            scoreLabel_->setText(QString("💯 分数: %1").arg(score));
             updatePropCounts();
         }
     });
@@ -655,6 +625,7 @@ void MainWindow::updatePropCounts()
     }
     
     PropManager& propManager = gameEngine_->getPropManager();
+    int currentScore = gameEngine_->getCurrentScore();
     
     // 更新数量标签
     if (hammerCountLabel_) {
@@ -674,4 +645,90 @@ void MainWindow::updatePropCounts()
         magicWandCountLabel_->setText(QString("x %1").arg(count));
         magicWandButton_->setEnabled(count > 0);
     }
+    
+    // 更新购买按钮状态（根据分数是否足够）
+    if (buyHammerButton_) {
+        buyHammerButton_->setEnabled(currentScore >= HAMMER_PRICE);
+    }
+    if (buyClampButton_) {
+        buyClampButton_->setEnabled(currentScore >= CLAMP_PRICE);
+    }
+    if (buyMagicWandButton_) {
+        buyMagicWandButton_->setEnabled(currentScore >= MAGIC_WAND_PRICE);
+    }
+}
+
+/**
+ * @brief 购买锤子
+ */
+void MainWindow::onBuyHammer()
+{
+    if (!gameEngine_) return;
+    
+    int currentScore = gameEngine_->getCurrentScore();
+    if (currentScore < HAMMER_PRICE) {
+        qDebug() << "分数不足，无法购买锤子";
+        return;
+    }
+    
+    // 扣除分数
+    gameEngine_->addScore(-HAMMER_PRICE);
+    
+    // 增加道具
+    gameEngine_->getPropManager().addProp(PropType::HAMMER, 1);
+    
+    qDebug() << "购买锤子成功! 剩余分数:" << gameEngine_->getCurrentScore();
+    
+    // 更新显示
+    updatePropCounts();
+}
+
+/**
+ * @brief 购买夹子
+ */
+void MainWindow::onBuyClamp()
+{
+    if (!gameEngine_) return;
+    
+    int currentScore = gameEngine_->getCurrentScore();
+    if (currentScore < CLAMP_PRICE) {
+        qDebug() << "分数不足，无法购买夹子";
+        return;
+    }
+    
+    // 扣除分数
+    gameEngine_->addScore(-CLAMP_PRICE);
+    
+    // 增加道具
+    gameEngine_->getPropManager().addProp(PropType::CLAMP, 1);
+    
+    qDebug() << "购买夹子成功! 剩余分数:" << gameEngine_->getCurrentScore();
+    
+    // 更新显示
+    updatePropCounts();
+}
+
+/**
+ * @brief 购买魔法棒
+ */
+void MainWindow::onBuyMagicWand()
+{
+    if (!gameEngine_) return;
+    
+    int currentScore = gameEngine_->getCurrentScore();
+    if (currentScore < MAGIC_WAND_PRICE) {
+        qDebug() << "分数不足，无法购买魔法棒";
+        return;
+    }
+    
+    // 扣除分数
+    gameEngine_->addScore(-MAGIC_WAND_PRICE);
+    
+    // 增加道具
+    gameEngine_->getPropManager().addProp(PropType::MAGIC_WAND, 1);
+    
+    qDebug() << "购买魔法棒成功! 剩余分数:" << gameEngine_->getCurrentScore();
+    
+    // 更新显示
+    updatePropCounts();
 }

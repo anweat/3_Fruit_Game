@@ -61,18 +61,20 @@ void LoginWidget::setupUi()
     
     // 状态标签
     statusLabel_ = new QLabel("");
-    statusLabel_->setStyleSheet("color: gray; font-size: 12px;");
+    statusLabel_->setObjectName("statusLabel");
     mainLayout->addWidget(statusLabel_);
     
     // 按钮布局
     QHBoxLayout* buttonLayout = new QHBoxLayout();
     
     loginButton_ = new QPushButton("🔐 登录");
+    loginButton_->setObjectName("loginButton");
     loginButton_->setMinimumHeight(40);
     loginButton_->setMinimumWidth(120);
     buttonLayout->addWidget(loginButton_);
     
     guestButton_ = new QPushButton("👤 游客模式");
+    guestButton_->setObjectName("guestButton");
     guestButton_->setMinimumHeight(40);
     guestButton_->setMinimumWidth(120);
     buttonLayout->addWidget(guestButton_);
@@ -89,17 +91,13 @@ void LoginWidget::setupUi()
     
     // 玩家信息显示（初始隐藏）
     playerInfoLabel_ = new QLabel("");
-    playerInfoLabel_->setStyleSheet(
-        "background-color: #f0f0f0; "
-        "padding: 10px; "
-        "border-radius: 5px; "
-        "font-size: 14px;"
-    );
+    playerInfoLabel_->setObjectName("playerInfoLabel");
     playerInfoLabel_->setAlignment(Qt::AlignLeft);
     playerInfoLabel_->setVisible(false);
     mainLayout->addWidget(playerInfoLabel_);
     
     logoutButton_ = new QPushButton("🚪 登出");
+    logoutButton_->setObjectName("logoutButton");
     logoutButton_->setMinimumHeight(35);
     logoutButton_->setVisible(false);
     mainLayout->addWidget(logoutButton_);

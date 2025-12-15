@@ -143,8 +143,8 @@ void GameView::initializeGL()
 {
     initializeOpenGLFunctions();
     
-    // 设置背景颜色（深蓝色）
-    glClearColor(0.1f, 0.15f, 0.25f, 1.0f);
+    // 设置背景颜色（奶油白色）
+    glClearColor(1.0f, 0.97f, 0.94f, 1.0f);  // #FFF8F0
     
     // 启用2D混合
     glEnable(GL_BLEND);
@@ -204,9 +204,9 @@ void GameView::paintGL()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    // 绘制网格背景
+    // 绘制网格背景（奶油风格边框）
     glDisable(GL_TEXTURE_2D);
-    glColor4f(0.2f, 0.25f, 0.35f, 1.0f);
+    glColor4f(1.0f, 0.83f, 0.71f, 1.0f);  // #FFD4B8 桃色
     drawQuad(gridStartX_ - 10, gridStartY_ - 10, cellSize_ * MAP_SIZE + 20);
     
     // 绘制水果
@@ -285,13 +285,13 @@ void GameView::drawFruitGrid()
                       ? snapshotManager_->getSnapshot() 
                       : gameEngine_->getMap();
     
-    // 先绘制所有单元格背景
+    // 先绘制所有单元格背景（奶油白色）
     for (int row = 0; row < MAP_SIZE; row++) {
         for (int col = 0; col < MAP_SIZE; col++) {
             float x = gridStartX_ + col * cellSize_;
             float y = gridStartY_ + row * cellSize_;
             glDisable(GL_TEXTURE_2D);
-            glColor4f(0.3f, 0.35f, 0.45f, 1.0f);
+            glColor4f(1.0f, 0.96f, 0.93f, 1.0f);  // #FFF5ED 浅奶油色
             drawQuad(x, y, cellSize_);
         }
     }
@@ -395,10 +395,11 @@ void GameView::drawFruit(int row, int col, const Fruit& fruit, float offsetX, fl
         return;
     }
     
-    // 绘制水果纹理（不再重复绘制背景）
+    // 绘制水果纹理（调亮以适配奶油风格）
     glEnable(GL_TEXTURE_2D);
     texture->bind();
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    // 使用稍微增强的亮度值，让材质更明亮
+    glColor4f(1.15f, 1.15f, 1.15f, 1.0f);
     
     // 留出边距
     float padding = cellSize_ * 0.1f;
@@ -419,17 +420,17 @@ void GameView::drawFruit(int row, int col, const Fruit& fruit, float offsetX, fl
     if (fruit.special != SpecialType::NONE) {
         glDisable(GL_TEXTURE_2D);
         
-        // 根据特殊类型选择颜色
+        // 根据特殊类型选择颜色（奶油风格）
         switch (fruit.special) {
             case SpecialType::LINE_H:
             case SpecialType::LINE_V:
-                glColor4f(1.0f, 0.8f, 0.0f, 0.8f); // 金色
+                glColor4f(1.0f, 0.70f, 0.28f, 0.8f);  // #FFB347 金黄色
                 break;
             case SpecialType::DIAMOND:
-                glColor4f(0.0f, 0.8f, 1.0f, 0.8f); // 青色
+                glColor4f(0.53f, 0.81f, 1.0f, 0.8f);  // #87CEFA 浅蓝色
                 break;
             case SpecialType::RAINBOW:
-                glColor4f(1.0f, 0.0f, 1.0f, 0.8f); // 紫色
+                glColor4f(1.0f, 0.71f, 0.76f, 0.8f);  // #FFB5C2 浅粉色
                 break;
             default:
                 break;
@@ -461,15 +462,15 @@ void GameView::drawSelection()
     
     glDisable(GL_TEXTURE_2D);
     
-    // 绘制脉冲效果
+    // 绘制脉冲效果（奶油桃色）
     float pulse = 0.5f + 0.5f * std::sin(animationFrame_ * 0.1f);
-    glColor4f(1.0f, 1.0f, 0.0f, 0.3f + 0.2f * pulse);
+    glColor4f(1.0f, 0.71f, 0.64f, 0.3f + 0.2f * pulse);  // #FFB6A3 桃色
     
     // 绘制填充
     drawQuad(x, y, cellSize_);
     
-    // 绘制边框
-    glColor4f(1.0f, 1.0f, 0.0f, 0.8f + 0.2f * pulse);
+    // 绘制边框（深桃色）
+    glColor4f(1.0f, 0.42f, 0.21f, 0.8f + 0.2f * pulse);  // #FF6B35 深桃色
     glLineWidth(3.0f);
     glBegin(GL_LINE_LOOP);
         glVertex2f(x, y);
@@ -916,20 +917,20 @@ void GameView::drawPropSelection()
             float x = gridStartX_ + propTargetCol1_ * cellSize_;
             float y = gridStartY_ + propTargetRow1_ * cellSize_;
             
-            // 根据道具类型选择颜色
+            // 根据道具类型选择颜色（奶油风格）
             if (heldPropType_ == ClickMode::PROP_HAMMER) {
-                glColor4f(0.55f, 0.27f, 0.07f, 0.6f);  // 棕色
+                glColor4f(0.96f, 0.87f, 0.70f, 0.6f);  // #F5DEB3 小麦色
             } else if (heldPropType_ == ClickMode::PROP_CLAMP) {
-                glColor4f(0.25f, 0.41f, 0.88f, 0.6f);  // 蓝色
+                glColor4f(0.68f, 0.85f, 0.90f, 0.6f);  // #AED9E6 浅蓝色
             } else if (heldPropType_ == ClickMode::PROP_MAGIC_WAND) {
-                glColor4f(0.58f, 0.44f, 0.86f, 0.6f);  // 紫色
+                glColor4f(0.93f, 0.79f, 0.93f, 0.6f);  // #EDC9ED 浅紫色
             }
             
             // 绘制填充
             drawQuad(x, y, cellSize_);
             
-            // 绘制边框
-            glColor4f(1.0f, 1.0f, 0.0f, 0.9f);
+            // 绘制边框（桃色）
+            glColor4f(1.0f, 0.42f, 0.21f, 0.9f);  // #FF6B35
             glLineWidth(4.0f);
             glBegin(GL_LINE_LOOP);
                 glVertex2f(x, y);
@@ -946,10 +947,10 @@ void GameView::drawPropSelection()
             float x = gridStartX_ + propTargetCol2_ * cellSize_;
             float y = gridStartY_ + propTargetRow2_ * cellSize_;
             
-            glColor4f(0.25f, 0.41f, 0.88f, 0.6f);  // 蓝色
+            glColor4f(0.68f, 0.85f, 0.90f, 0.6f);  // #AED9E6 浅蓝色
             drawQuad(x, y, cellSize_);
             
-            glColor4f(1.0f, 1.0f, 0.0f, 0.9f);
+            glColor4f(1.0f, 0.42f, 0.21f, 0.9f);  // #FF6B35 桃色边框
             glLineWidth(4.0f);
             glBegin(GL_LINE_LOOP);
                 glVertex2f(x, y);

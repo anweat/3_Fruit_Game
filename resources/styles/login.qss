@@ -1,0 +1,100 @@
+/* ============================================
+   登录界面样式 - 奶油风格
+   ============================================ */
+
+/* 登录界面容器 */
+LoginWidget {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF8F0, stop:1 #FFE4D6);
+}
+
+/* 登录按钮 */
+QPushButton#loginButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #A8E6CF, stop:1 #7FD4A8);
+    border: 3px solid #6BC4A0;
+    border-radius: 12px;
+    color: #2D5A3D;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 12px 24px;
+    min-height: 40px;
+}
+
+QPushButton#loginButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #BFFFE0, stop:1 #A8E6CF);
+    border: 3px solid #56B78C;
+}
+
+QPushButton#loginButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #7FD4A8, stop:1 #6BC4A0);
+}
+
+/* 游客模式按钮 */
+QPushButton#guestButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFE4B8, stop:1 #FFD4A3);
+    border: 3px solid #E6C08C;
+    border-radius: 12px;
+    color: #5A4020;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 12px 24px;
+    min-height: 40px;
+}
+
+QPushButton#guestButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF0D6, stop:1 #FFE4B8);
+    border: 3px solid #D4B078;
+}
+
+QPushButton#guestButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD4A3, stop:1 #FFC490);
+}
+
+/* 登出按钮 */
+QPushButton#logoutButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFB8B8, stop:1 #FFA3A3);
+    border: 3px solid #E68C8C;
+    border-radius: 10px;
+    color: #5A2020;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 10px 20px;
+    min-height: 35px;
+}
+
+QPushButton#logoutButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD6D6, stop:1 #FFB8B8);
+    border: 3px solid #D47878;
+}
+
+QPushButton#logoutButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFA3A3, stop:1 #FF9090);
+}
+
+/* 玩家信息显示框 */
+QLabel#playerInfoLabel {
+    background-color: #FFFFFF;
+    border: 3px solid #FFE4D6;
+    border-radius: 10px;
+    padding: 15px;
+    color: #4A4A4A;
+    font-size: 14px;
+}
+
+/* 状态标签 */
+QLabel#statusLabel {
+    background-color: transparent;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+}

@@ -177,6 +177,7 @@ set(UI_HEADERS
     ui/MainWindow.h
     ui/LoginWidget.h
     ui/AchievementDialog.h
+    ui/StyleLoader.h
     ui/views/GameView.h
     ui/views/RankView.h
     ui/views/AchievementView.h
@@ -262,6 +263,12 @@ set(RESOURCE_FILES
     resources/textures/strawberry.png
     resources/textures/watermelon.png
     resources/textures/Candy.png
+    resources/styles/main.qss
+    resources/styles/buttons.qss
+    resources/styles/login.qss
+    resources/styles/game.qss
+    resources/styles/achievement.qss
+    resources/styles/scrollbar.qss
 )
 
 # 主可执行文件

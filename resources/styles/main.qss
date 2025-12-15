@@ -1,0 +1,128 @@
+/* ============================================
+   主窗口和全局样式 - 奶油风格
+   ============================================ */
+
+/* 全局样式 */
+QMainWindow {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF8F0, stop:1 #FFF0E6);
+}
+
+QWidget {
+    background-color: transparent;
+    color: #4A4A4A;
+    font-family: "Microsoft YaHei UI", "Segoe UI", Arial;
+}
+
+/* 标题标签 */
+QLabel#titleLabel {
+    color: #FF6B6B;
+    font-size: 28px;
+    font-weight: bold;
+    padding: 20px;
+}
+
+/* 中央容器 */
+QWidget#centralwidget {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF8F0, stop:1 #FFF0E6);
+}
+
+/* StackedWidget */
+QStackedWidget {
+    background-color: transparent;
+    border-radius: 15px;
+}
+
+/* 文本编辑框 */
+QTextEdit {
+    background-color: #FFFFFF;
+    border: 2px solid #FFE4D6;
+    border-radius: 10px;
+    padding: 10px;
+    color: #4A4A4A;
+    font-family: "Consolas", "Courier New", monospace;
+}
+
+QTextEdit:focus {
+    border: 2px solid #FFB6A3;
+}
+
+/* 输入框 */
+QLineEdit {
+    background-color: #FFFFFF;
+    border: 2px solid #FFE4D6;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #4A4A4A;
+    font-size: 14px;
+}
+
+QLineEdit:hover {
+    border: 2px solid #FFCDB5;
+    background-color: #FFFBF8;
+}
+
+QLineEdit:focus {
+    border: 2px solid #FFB6A3;
+    background-color: #FFFFFF;
+}
+
+/* 标签通用样式 */
+QLabel {
+    color: #5A5A5A;
+    background-color: transparent;
+}
+
+/* Frame 分隔线 */
+QFrame[frameShape="4"] /* HLine */ {
+    background-color: #FFE4D6;
+    max-height: 2px;
+    border: none;
+}
+
+QFrame[frameShape="5"] /* VLine */ {
+    background-color: #FFE4D6;
+    max-width: 2px;
+    border: none;
+}
+
+/* 菜单栏 */
+QMenuBar {
+    background-color: #FFF5ED;
+    border-bottom: 2px solid #FFE4D6;
+    padding: 4px;
+}
+
+QMenuBar::item {
+    background-color: transparent;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #5A5A5A;
+}
+
+QMenuBar::item:selected {
+    background-color: #FFE4D6;
+    color: #FF6B6B;
+}
+
+QMenuBar::item:pressed {
+    background-color: #FFCDB5;
+}
+
+/* 状态栏 */
+QStatusBar {
+    background-color: #FFF5ED;
+    border-top: 2px solid #FFE4D6;
+    color: #6A6A6A;
+}
+
+/* 工具提示 */
+QToolTip {
+    background-color: #FFF5ED;
+    border: 2px solid #FFD4B8;
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: #4A4A4A;
+    font-size: 13px;
+}

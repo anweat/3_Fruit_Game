@@ -1,5 +1,6 @@
 #include <QApplication>
 #include "ui/MainWindow.h"
+#include "ui/StyleLoader.h"
 
 int main(int argc, char *argv[])
 {
@@ -9,6 +10,9 @@ int main(int argc, char *argv[])
     QApplication::setApplicationName("Fruit Crush");
     QApplication::setApplicationVersion("1.0.0");
     QApplication::setOrganizationName("GameDev");
+    
+    // 加载奶油风格样式表
+    StyleLoader::applyStyles();
     
     // 创建并显示主窗口
     MainWindow window;

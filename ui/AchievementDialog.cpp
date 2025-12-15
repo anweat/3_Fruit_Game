@@ -34,54 +34,8 @@ AchievementDialog::~AchievementDialog()
 
 void AchievementDialog::setupStyleSheet()
 {
-    setStyleSheet(R"(
-        QDialog {
-            background-color: #1a1a2e;
-        }
-        
-        QScrollArea {
-            border: none;
-            background-color: transparent;
-        }
-        
-        QScrollBar:vertical {
-            background-color: #16213e;
-            width: 10px;
-            border-radius: 5px;
-        }
-        
-        QScrollBar::handle:vertical {
-            background-color: #4a4a6a;
-            border-radius: 5px;
-            min-height: 30px;
-        }
-        
-        QScrollBar::handle:vertical:hover {
-            background-color: #5a5a8a;
-        }
-        
-        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-            height: 0px;
-        }
-        
-        QPushButton#closeButton {
-            background-color: #4a4a6a;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 30px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        
-        QPushButton#closeButton:hover {
-            background-color: #5a5a8a;
-        }
-        
-        QPushButton#closeButton:pressed {
-            background-color: #3a3a5a;
-        }
-    )");
+    // 样式已通过全局QSS加载，此处不再需要硬编码
+    // 保留此函数以防后续需要对话框特定样式
 }
 
 void AchievementDialog::setupUi()
@@ -121,7 +75,7 @@ void AchievementDialog::createGuestModeView()
     // 标题
     QLabel* titleLabel = new QLabel("游客模式");
     titleLabel->setStyleSheet(R"(
-        color: #ffd700;
+        color: #FF6B35;
         font-size: 24px;
         font-weight: bold;
     )");
@@ -137,7 +91,7 @@ void AchievementDialog::createGuestModeView()
         "• 查看完整成就列表"
     );
     infoLabel->setStyleSheet(R"(
-        color: #a0a0c0;
+        color: #6A5A4A;
         font-size: 14px;
         line-height: 1.6;
     )");
@@ -147,17 +101,11 @@ void AchievementDialog::createGuestModeView()
     
     // 提示框
     QFrame* tipFrame = new QFrame();
-    tipFrame->setStyleSheet(R"(
-        QFrame {
-            background-color: #2a2a4e;
-            border-radius: 10px;
-            padding: 15px;
-        }
-    )");
+    tipFrame->setObjectName("tipFrame");
     QVBoxLayout* tipLayout = new QVBoxLayout(tipFrame);
     
     QLabel* tipLabel = new QLabel("💡 提示：返回主菜单点击\"退出登录\"可切换到登录界面");
-    tipLabel->setStyleSheet("color: #8080a0; font-size: 12px;");
+    tipLabel->setStyleSheet("color: #8B6914; font-size: 12px;");
     tipLabel->setAlignment(Qt::AlignCenter);
     tipLabel->setWordWrap(true);
     tipLayout->addWidget(tipLabel);
@@ -190,7 +138,9 @@ void AchievementDialog::createAchievementView()
     QWidget* headerWidget = new QWidget();
     headerWidget->setStyleSheet(R"(
         QWidget {
-            background-color: #2a2a4e;
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                        stop:0 #FFF5ED, stop:1 #FFE4D6);
+            border: 3px solid #FFD4B8;
             border-radius: 12px;
         }
     )");
@@ -200,7 +150,7 @@ void AchievementDialog::createAchievementView()
     // 玩家名称
     QLabel* playerLabel = new QLabel(QString("🎮 %1 的成就").arg(playerName_));
     playerLabel->setStyleSheet(R"(
-        color: #ffd700;
+        color: #FF6B35;
         font-size: 18px;
         font-weight: bold;
     )");
@@ -211,7 +161,7 @@ void AchievementDialog::createAchievementView()
     QLabel* statsLabel = new QLabel(QString("已完成: %1 / %2")
                                     .arg(completedAchievements_)
                                     .arg(totalAchievements_));
-    statsLabel->setStyleSheet("color: #a0a0c0; font-size: 14px;");
+    statsLabel->setStyleSheet("color: #8B6914; font-size: 14px;");
     statsLabel->setAlignment(Qt::AlignCenter);
     headerLayout->addWidget(statsLabel);
     
@@ -223,12 +173,13 @@ void AchievementDialog::createAchievementView()
     totalProgress->setFixedHeight(8);
     totalProgress->setStyleSheet(R"(
         QProgressBar {
-            background-color: #1a1a2e;
+            background-color: #FFE4D6;
+            border: 2px solid #FFD4B8;
             border-radius: 4px;
         }
         QProgressBar::chunk {
             background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                stop:0 #ffd700, stop:1 #ff8c00);
+                stop:0 #FFB347, stop:1 #FF6B35);
             border-radius: 4px;
         }
     )");
@@ -294,7 +245,7 @@ QWidget* AchievementDialog::createCategorySection(AchievementCategory category,
     // 类别标题
     QLabel* categoryLabel = new QLabel(QString("%1 %2").arg(categoryIcon, categoryName));
     categoryLabel->setStyleSheet(R"(
-        color: #e0e0ff;
+        color: #5A3825;
         font-size: 16px;
         font-weight: bold;
         padding: 5px 0;
@@ -327,11 +278,16 @@ QWidget* AchievementDialog::createAchievementCard(const AchievementDef& def,
     QFrame* card = new QFrame();
     card->setStyleSheet(QString(R"(
         QFrame {
-            background-color: %1;
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                        stop:0 %1, stop:1 %2);
             border-radius: 10px;
-            border-left: 4px solid %2;
+            border: 3px solid %3;
+            border-left: 5px solid %4;
         }
-    )").arg(isCompleted ? "#2a3a4e" : "#1e1e3e", getRarityColor(def.rarity)));
+    )").arg(isCompleted ? "#FFFFFF" : "#FFF5ED",
+            isCompleted ? "#FFF5ED" : "#FFE4D6",
+            isCompleted ? "#FFD4B8" : "#FFE4D6",
+            getRarityColor(def.rarity)));
     
     QHBoxLayout* cardLayout = new QHBoxLayout(card);
     cardLayout->setSpacing(12);
@@ -358,7 +314,7 @@ QWidget* AchievementDialog::createAchievementCard(const AchievementDef& def,
         color: %1;
         font-size: 14px;
         font-weight: bold;
-    )").arg(isCompleted ? "#ffffff" : "#808090"));
+    )").arg(isCompleted ? "#4A2815" : "#8B6914"));
     nameRow->addWidget(nameLabel);
     
     // 稀有度标签
@@ -367,10 +323,11 @@ QWidget* AchievementDialog::createAchievementCard(const AchievementDef& def,
         color: %1;
         font-size: 10px;
         background-color: %2;
+        border: 1px solid %1;
         border-radius: 3px;
         padding: 2px 6px;
     )").arg(getRarityColor(def.rarity), 
-            isCompleted ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.3)"));
+            isCompleted ? "rgba(255,244,230,0.8)" : "rgba(255,228,214,0.6)"));
     nameRow->addWidget(rarityLabel);
     nameRow->addStretch();
     
@@ -379,7 +336,7 @@ QWidget* AchievementDialog::createAchievementCard(const AchievementDef& def,
     // 描述
     QLabel* descLabel = new QLabel(def.description);
     descLabel->setStyleSheet(QString("color: %1; font-size: 11px;")
-                             .arg(isCompleted ? "#a0a0c0" : "#606080"));
+                             .arg(isCompleted ? "#6A5A4A" : "#8B7355"));
     descLabel->setWordWrap(true);
     infoLayout->addWidget(descLabel);
     
@@ -392,7 +349,8 @@ QWidget* AchievementDialog::createAchievementCard(const AchievementDef& def,
         progressBar->setFixedHeight(6);
         progressBar->setStyleSheet(QString(R"(
             QProgressBar {
-                background-color: #0a0a1e;
+                background-color: #FFE4D6;
+                border: 1px solid #FFD4B8;
                 border-radius: 3px;
             }
             QProgressBar::chunk {
@@ -406,7 +364,7 @@ QWidget* AchievementDialog::createAchievementCard(const AchievementDef& def,
         QLabel* progressLabel = new QLabel(QString("%1 / %2")
                                            .arg(progress.currentValue)
                                            .arg(def.targetValue));
-        progressLabel->setStyleSheet("color: #606080; font-size: 10px;");
+        progressLabel->setStyleSheet("color: #8B6914; font-size: 10px;");
         infoLayout->addWidget(progressLabel);
     }
     
@@ -428,7 +386,7 @@ QWidget* AchievementDialog::createAchievementCard(const AchievementDef& def,
         color: %1;
         font-size: 12px;
         font-weight: bold;
-    )").arg(isCompleted ? "#ffd700" : "#505060"));
+    )").arg(isCompleted ? "#FF8C00" : "#CD853F"));
     rewardLabel->setAlignment(Qt::AlignCenter);
     rightLayout->addWidget(rewardLabel);
     

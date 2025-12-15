@@ -86,6 +86,21 @@ private slots:
      * @brief 更新道具数量显示
      */
     void updatePropCounts();
+    
+    /**
+     * @brief 购买锤子
+     */
+    void onBuyHammer();
+    
+    /**
+     * @brief 购买夹子
+     */
+    void onBuyClamp();
+    
+    /**
+     * @brief 购买魔法棒
+     */
+    void onBuyMagicWand();
 
 private:
     Ui::MainWindow *ui;
@@ -116,6 +131,16 @@ private:
     QLabel* hammerCountLabel_;      // 锤子数量标签
     QLabel* clampCountLabel_;       // 夹子数量标签
     QLabel* magicWandCountLabel_;   // 魔法棒数量标签
+    
+    // 道具购买按钮
+    QPushButton* buyHammerButton_;     // 购买锤子按钮
+    QPushButton* buyClampButton_;      // 购买夹子按钮
+    QPushButton* buyMagicWandButton_;  // 购买魔法棒按钮
+    
+    // 道具价格常量
+    static constexpr int HAMMER_PRICE = 200;
+    static constexpr int CLAMP_PRICE = 200;
+    static constexpr int MAGIC_WAND_PRICE = 400;
     
     // 成就通知组件
     AchievementNotificationWidget* achievementNotification_;

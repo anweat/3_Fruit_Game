@@ -1,0 +1,200 @@
+/* ============================================
+   按钮样式 - 奶油风格
+   ============================================ */
+
+/* 主按钮样式 */
+QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD4B8, stop:1 #FFB6A3);
+    border: none;
+    border-radius: 12px;
+    color: #5A3825;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 12px 24px;
+    min-height: 40px;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFE4D6, stop:1 #FFD4B8);
+    color: #4A2815;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFB6A3, stop:1 #FFA890);
+    padding-top: 14px;
+    padding-bottom: 10px;
+}
+
+QPushButton:disabled {
+    background: #E8E8E8;
+    color: #A0A0A0;
+}
+
+/* 主菜单按钮 */
+QPushButton#casualModeButton,
+QPushButton#competitionModeButton,
+QPushButton#leaderboardButton,
+QPushButton#achievementsButton,
+QPushButton#settingsButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF5ED, stop:1 #FFE4D6);
+    border: 3px solid #FFD4B8;
+    border-radius: 15px;
+    color: #5A3825;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 15px 30px;
+    min-height: 50px;
+}
+
+QPushButton#casualModeButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF0DC, stop:1 #FFD4B8);
+    border: 3px solid #FFB6A3;
+}
+
+QPushButton#competitionModeButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF0DC, stop:1 #FFD4B8);
+    border: 3px solid #FFB6A3;
+}
+
+QPushButton#leaderboardButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF0DC, stop:1 #FFD4B8);
+    border: 3px solid #FFB6A3;
+}
+
+QPushButton#achievementsButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF0DC, stop:1 #FFD4B8);
+    border: 3px solid #FFB6A3;
+}
+
+QPushButton#settingsButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF0DC, stop:1 #FFD4B8);
+    border: 3px solid #FFB6A3;
+}
+
+QPushButton#casualModeButton:pressed,
+QPushButton#competitionModeButton:pressed,
+QPushButton#leaderboardButton:pressed,
+QPushButton#achievementsButton:pressed,
+QPushButton#settingsButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFE4D6, stop:1 #FFCDB5);
+    border: 3px solid #FFA890;
+}
+
+/* 道具按钮（锤子）*/
+QPushButton[toolTip*="锤子"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF8F0, stop:1 #FFE4D6);
+    border: 3px solid #D4A574;
+    border-radius: 12px;
+}
+
+QPushButton[toolTip*="锤子"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBF8, stop:1 #FFF0E6);
+    border: 4px solid #C89558;
+}
+
+QPushButton[toolTip*="锤子"]:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFE4D6, stop:1 #FFD4B8);
+}
+
+/* 道具按钮（夹子）*/
+QPushButton[toolTip*="夹子"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #F0F8FF, stop:1 #E6F3FF);
+    border: 3px solid #9DCDFF;
+    border-radius: 12px;
+}
+
+QPushButton[toolTip*="夹子"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #F8FBFF, stop:1 #F0F8FF);
+    border: 4px solid #7ABAFF;
+}
+
+QPushButton[toolTip*="夹子"]:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #E6F3FF, stop:1 #D4EBFF);
+}
+
+/* 道具按钮（魔法棒）*/
+QPushButton[toolTip*="魔法棒"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF0FF, stop:1 #FFE6FF);
+    border: 3px solid #D4A5D4;
+    border-radius: 12px;
+}
+
+QPushButton[toolTip*="魔法棒"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF8FF, stop:1 #FFF0FF);
+    border: 4px solid #C58AC5;
+}
+
+QPushButton[toolTip*="魔法棒"]:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFE6FF, stop:1 #FFD4FF);
+}
+
+/* 购买按钮 */
+QPushButton[toolTip*="购买"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFE66D, stop:1 #FFD93D);
+    border: 2px solid #E6C200;
+    border-radius: 6px;
+    color: #5A4000;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 4px 8px;
+}
+
+QPushButton[toolTip*="购买"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF07C, stop:1 #FFE66D);
+    border: 2px solid #D4B000;
+}
+
+QPushButton[toolTip*="购买"]:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD93D, stop:1 #FFC700);
+}
+
+QPushButton[toolTip*="购买"]:disabled {
+    background: #D8D8D8;
+    color: #888888;
+    border: 2px solid #B0B0B0;
+}
+
+/* 关闭按钮 */
+QPushButton#closeButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD4B8, stop:1 #FFB6A3);
+    border: none;
+    border-radius: 10px;
+    color: #5A3825;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px 30px;
+    min-height: 40px;
+}
+
+QPushButton#closeButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFE4D6, stop:1 #FFD4B8);
+}
+
+QPushButton#closeButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFB6A3, stop:1 #FFA890);
+}

@@ -198,12 +198,13 @@ public:
     int getCurrentScore() const { return currentScore_; }
     
     /**
-     * @brief 增加分数（用于成就奖励）
-     * @param score 要增加的分数
+     * @brief 增加或减少分数（用于成就奖励或购买道具）
+     * @param score 要增加的分数（正数增加，负数减少）
      */
     void addScore(int score) {
-        if (score > 0) {
-            currentScore_ += score;
+        currentScore_ += score;
+        if (currentScore_ < 0) {
+            currentScore_ = 0;  // 防止分数为负
         }
     }
     

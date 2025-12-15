@@ -1,0 +1,91 @@
+/* ============================================
+   游戏界面样式 - 奶油风格
+   ============================================ */
+
+/* 游戏视图容器 */
+GameView {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF8F0, stop:1 #FFE4D6);
+    border: 4px solid #FFD4B8;
+    border-radius: 15px;
+}
+
+/* 分数标签 */
+QLabel[text*="分数"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF5ED, stop:1 #FFE4D6);
+    border: 3px solid #FFD4B8;
+    border-radius: 12px;
+    color: #FF6B35;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px 20px;
+}
+
+/* 道具标签 */
+QLabel[text*="道具"] {
+    background-color: transparent;
+    color: #5A4A3A;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 8px;
+}
+
+/* 道具数量标签 */
+QLabel[text^="x "] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFFFF, stop:1 #FFF5ED);
+    border: 2px solid #FFE4D6;
+    border-radius: 6px;
+    color: #5A3825;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 4px 8px;
+}
+
+/* 返回菜单按钮 */
+QPushButton[text="返回主菜单"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #E8E8E8, stop:1 #D4D4D4);
+    border: 3px solid #B8B8B8;
+    border-radius: 12px;
+    color: #4A4A4A;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 12px 24px;
+    min-height: 40px;
+}
+
+QPushButton[text="返回主菜单"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #F5F5F5, stop:1 #E8E8E8);
+    border: 3px solid #A0A0A0;
+}
+
+QPushButton[text="返回主菜单"]:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #D4D4D4, stop:1 #C0C0C0);
+}
+
+/* 测试按钮 */
+QPushButton[text*="测试"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #D4E8FF, stop:1 #B8D8FF);
+    border: 3px solid #9CC5FF;
+    border-radius: 10px;
+    color: #2A4A6A;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 10px 20px;
+}
+
+QPushButton[text*="测试"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #E8F4FF, stop:1 #D4E8FF);
+    border: 3px solid #7AB0FF;
+}
+
+QPushButton[text*="测试"]:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #B8D8FF, stop:1 #9CC5FF);
+}

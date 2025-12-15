@@ -1,0 +1,83 @@
+/* ============================================
+   成就对话框样式 - 奶油风格
+   ============================================ */
+
+/* 成就对话框 */
+AchievementDialog {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF8F0, stop:1 #FFE4D6);
+}
+
+QDialog {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF8F0, stop:1 #FFE4D6);
+}
+
+/* 成就通知组件 */
+AchievementNotificationWidget {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                stop:0 #FFD4B8, stop:0.5 #FFA8D4, stop:1 #A8D4FF);
+    border: 4px solid #FFFFFF;
+    border-radius: 15px;
+}
+
+AchievementNotificationWidget QLabel {
+    background-color: transparent;
+    color: #2A2A2A;
+}
+
+/* 成就图标标签 */
+AchievementNotificationWidget QLabel[styleSheet*="font-size: 48px"] {
+    background-color: rgba(255, 255, 255, 150);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+/* 成就标题 */
+AchievementNotificationWidget QLabel[styleSheet*="font-size: 16px"] {
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+/* 成就稀有度 */
+AchievementNotificationWidget QLabel[styleSheet*="font-size: 12px"] {
+    color: #F0F0F0;
+}
+
+/* 成就奖励 */
+AchievementNotificationWidget QLabel[styleSheet*="#FFD700"] {
+    color: #FFEB3B;
+}
+
+/* 成就列表项背景 */
+QWidget[objectName="achievementItemWidget"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFFFF, stop:1 #FFF5ED);
+    border: 3px solid #FFE4D6;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+QWidget[objectName="achievementItemWidget"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBF8, stop:1 #FFF0E6);
+    border: 3px solid #FFD4B8;
+}
+
+/* 游客模式提示 */
+QWidget[objectName="guestWidget"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF5ED, stop:1 #FFE4D6);
+    border: 3px solid #FFD4B8;
+    border-radius: 15px;
+    padding: 30px;
+}
+
+/* 提示框 */
+QFrame[objectName="tipFrame"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF8E1, stop:1 #FFE4B8);
+    border: 2px solid #FFD493;
+    border-radius: 10px;
+    padding: 15px;
+}

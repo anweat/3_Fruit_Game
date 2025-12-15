@@ -1,0 +1,89 @@
+/* ============================================
+   滚动条样式 - 奶油风格
+   ============================================ */
+
+/* 垂直滚动条 */
+QScrollBar:vertical {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                stop:0 #FFF5ED, stop:1 #FFE4D6);
+    width: 14px;
+    border-radius: 7px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                stop:0 #FFD4B8, stop:1 #FFB6A3);
+    border-radius: 7px;
+    min-height: 30px;
+    margin: 2px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                stop:0 #FFE4D6, stop:1 #FFD4B8);
+}
+
+QScrollBar::handle:vertical:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                stop:0 #FFB6A3, stop:1 #FFA890);
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0px;
+    background: transparent;
+}
+
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: transparent;
+}
+
+/* 水平滚动条 */
+QScrollBar:horizontal {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF5ED, stop:1 #FFE4D6);
+    height: 14px;
+    border-radius: 7px;
+    margin: 0px;
+}
+
+QScrollBar::handle:horizontal {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD4B8, stop:1 #FFB6A3);
+    border-radius: 7px;
+    min-width: 30px;
+    margin: 2px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFE4D6, stop:1 #FFD4B8);
+}
+
+QScrollBar::handle:horizontal:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFB6A3, stop:1 #FFA890);
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    width: 0px;
+    background: transparent;
+}
+
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
+    background: transparent;
+}
+
+/* 滚动区域 */
+QScrollArea {
+    background-color: transparent;
+    border: none;
+}
+
+QScrollArea > QWidget > QWidget {
+    background-color: transparent;
+}
