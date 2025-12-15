@@ -2,50 +2,50 @@
 #include <algorithm>
 
 FallProcessor::FallProcessor() {
-    // ¹¹Ôìº¯Êı - ÎŞĞè³õÊ¼»¯
+    // æ„é€ å‡½æ•° - æ— éœ€åˆå§‹åŒ–
 }
 
 FallProcessor::~FallProcessor() {
-    // Îö¹¹º¯Êı - ÎŞĞèÇåÀí
+    // ææ„å‡½æ•° - æ— éœ€æ¸…ç†
 }
 
 /**
- * @brief ´¦ÀíµØÍ¼ÉÏËùÓĞĞèÒªÏÂÂäµÄË®¹û
+ * @brief å¤„ç†åœ°å›¾ä¸Šæ‰€æœ‰éœ€è¦ä¸‹è½çš„æ°´æœ
  * 
- * ÊµÏÖÂß¼­£º
- * 1. ¶ÔÃ¿Ò»ÁĞ½øĞĞÉ¨Ãè£¬´ÓÏÂÍùÉÏ´¦Àí
- * 2. ½«·Ç¿ÕË®¹ûÏòÏÂÒÆ¶¯Ìî³ä¿ÕÎ»
- * 3. ¼ÇÂ¼ËùÓĞÒÆ¶¯¹ì¼£¹©¶¯»­Ê¹ÓÃ
+ * å®ç°é€»è¾‘ï¼š
+ * 1. å¯¹æ¯ä¸€åˆ—è¿›è¡Œæ‰«æï¼Œä»ä¸‹å¾€ä¸Šå¤„ç†
+ * 2. å°†éç©ºæ°´æœå‘ä¸‹ç§»åŠ¨å¡«å……ç©ºä½
+ * 3. è®°å½•æ‰€æœ‰ç§»åŠ¨è½¨è¿¹ä¾›åŠ¨ç”»ä½¿ç”¨
  */
 std::vector<std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>>> 
 FallProcessor::processFall(std::vector<std::vector<Fruit>>& map, FruitGenerator& generator, int mapSize) {
     std::vector<std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>>> allSteps;
     
-    // ¶ÔÃ¿Ò»ÁĞ´¦ÀíÏÂÂä
+    // å¯¹æ¯ä¸€åˆ—å¤„ç†ä¸‹è½
     std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> currentStep;
     
     for (int col = 0; col < mapSize; col++) {
-        // ´ÓÏÂÍùÉÏÉ¨Ãè£¬Ñ°ÕÒ¿ÕÎ»
-        int emptyRow = mapSize - 1;  // µ±Ç°¿ÕÎ»Ö¸Õë
+        // ä»ä¸‹å¾€ä¸Šæ‰«æï¼Œå¯»æ‰¾ç©ºä½
+        int emptyRow = mapSize - 1;  // å½“å‰ç©ºä½æŒ‡é’ˆ
         
-        // ´ÓÏÂÍùÉÏÑ°ÕÒµÚÒ»¸ö·Ç¿ÕÎ»ÖÃ
+        // ä»ä¸‹å¾€ä¸Šå¯»æ‰¾ç¬¬ä¸€ä¸ªéç©ºä½ç½®
         for (int row = mapSize - 1; row >= 0; row--) {
             if (map[row][col].type != FruitType::EMPTY) {
-                // ÕÒµ½·Ç¿ÕË®¹û
+                // æ‰¾åˆ°éç©ºæ°´æœ
                 if (row != emptyRow) {
-                    // ĞèÒªÏÂÂä
+                    // éœ€è¦ä¸‹è½
                     map[emptyRow][col] = map[row][col];
                     map[emptyRow][col].row = emptyRow;
                     map[emptyRow][col].col = col;
                     
-                    // ¼ÇÂ¼ÒÆ¶¯
+                    // è®°å½•ç§»åŠ¨
                     currentStep.push_back({{row, col}, {emptyRow, col}});
                     
-                    // Ô­Î»ÖÃÇå¿Õ
+                    // åŸä½ç½®æ¸…ç©º
                     map[row][col].type = FruitType::EMPTY;
                     map[row][col].special = SpecialType::NONE;
                 }
-                emptyRow--;  // ¿ÕÎ»Ö¸ÕëÉÏÒÆ
+                emptyRow--;  // ç©ºä½æŒ‡é’ˆä¸Šç§»
             }
         }
     }
@@ -54,12 +54,12 @@ FallProcessor::processFall(std::vector<std::vector<Fruit>>& map, FruitGenerator&
         allSteps.push_back(currentStep);
     }
     
-    // Ìî³äĞÂµÄË®¹û
+    // å¡«å……æ–°çš„æ°´æœ
     auto newFruits = fillEmptySlots(map, generator, mapSize);
     if (!newFruits.empty()) {
         std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> fillStep;
         for (const auto& pos : newFruits) {
-            // ĞÂË®¹û´Ó¶¥²¿ÉÏ·½³öÏÖ
+            // æ–°æ°´æœä»é¡¶éƒ¨ä¸Šæ–¹å‡ºç°
             fillStep.push_back({{-1, pos.second}, pos});
         }
         allSteps.push_back(fillStep);
@@ -69,7 +69,7 @@ FallProcessor::processFall(std::vector<std::vector<Fruit>>& map, FruitGenerator&
 }
 
 /**
- * @brief ´¦Àíµ¥ÁĞµÄÏÂÂä
+ * @brief å¤„ç†å•åˆ—çš„ä¸‹è½
  */
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> 
 FallProcessor::processColumnFall(std::vector<std::vector<Fruit>>& map, int col) {
@@ -84,7 +84,7 @@ FallProcessor::processColumnFall(std::vector<std::vector<Fruit>>& map, int col) 
     for (int row = static_cast<int>(map.size()) - 1; row >= 0; row--) {
         if (map[row][col].type != FruitType::EMPTY) {
             if (row != emptyRow) {
-                // ĞèÒªÏÂÂä
+                // éœ€è¦ä¸‹è½
                 map[emptyRow][col] = map[row][col];
                 map[emptyRow][col].row = emptyRow;
                 map[emptyRow][col].col = col;
@@ -102,7 +102,7 @@ FallProcessor::processColumnFall(std::vector<std::vector<Fruit>>& map, int col) 
 }
 
 /**
- * @brief Ìî³ä¿ÕÎ»
+ * @brief å¡«å……ç©ºä½
  */
 std::vector<std::pair<int, int>> 
 FallProcessor::fillEmptySlots(std::vector<std::vector<Fruit>>& map, 
@@ -112,7 +112,7 @@ FallProcessor::fillEmptySlots(std::vector<std::vector<Fruit>>& map,
     for (int row = 0; row < mapSize; row++) {
         for (int col = 0; col < mapSize; col++) {
             if (map[row][col].type == FruitType::EMPTY) {
-                // Éú³ÉĞÂË®¹û
+                // ç”Ÿæˆæ–°æ°´æœ
                 FruitType newType = generator.generateRandomFruit();
                 map[row][col] = Fruit(newType, row, col);
                 newPositions.push_back({row, col});
@@ -124,7 +124,7 @@ FallProcessor::fillEmptySlots(std::vector<std::vector<Fruit>>& map,
 }
 
 /**
- * @brief ¼ì²éµØÍ¼ÊÇ·ñÓĞ¿ÕÎ»
+ * @brief æ£€æŸ¥åœ°å›¾æ˜¯å¦æœ‰ç©ºä½
  */
 bool FallProcessor::hasEmptySlots(const std::vector<std::vector<Fruit>>& map) const {
     for (int row = 0; row < static_cast<int>(map.size()); row++) {
@@ -138,7 +138,7 @@ bool FallProcessor::hasEmptySlots(const std::vector<std::vector<Fruit>>& map) co
 }
 
 /**
- * @brief »ñÈ¡ËùÓĞ¿ÕÎ»µÄÎ»ÖÃ
+ * @brief è·å–æ‰€æœ‰ç©ºä½çš„ä½ç½®
  */
 std::vector<std::pair<int, int>> 
 FallProcessor::getEmptySlots(const std::vector<std::vector<Fruit>>& map) const {
@@ -156,7 +156,7 @@ FallProcessor::getEmptySlots(const std::vector<std::vector<Fruit>>& map) const {
 }
 
 /**
- * @brief ¼ÆËãÄ³¸öÎ»ÖÃÏÂ·½µÄ¿ÕÎ»ÊıÁ¿
+ * @brief è®¡ç®—æŸä¸ªä½ç½®ä¸‹æ–¹çš„ç©ºä½æ•°é‡
  */
 int FallProcessor::countEmptySlotsBelow(const std::vector<std::vector<Fruit>>& map, 
                                         int row, int col) const {

@@ -66,6 +66,9 @@ void FallAnimationRenderer::render(
     }
     
     // 2. 渲染新生成的水果（从动画数据获取类型）
+    // 关键修复：所有新水果从**同一位置**开始下落（gridStartY - cellSize * mapSize）
+    float newFruitStartY = gridStartY - cellSize * mapSize;  // 统一起始位置
+    
     for (const auto& nf : round.fall.newFruits) {
         int row = nf.row;
         int col = nf.col;
@@ -79,12 +82,9 @@ void FallAnimationRenderer::render(
         fruit.type = nf.type;
         fruit.special = nf.special;
         
-        // 计算从顶部下落的起始位置
-        // 新水果从地图上方（row < 0的位置）下落到目标位置
-        // 根据目标row计算队列偏移
-        float queueOffset = static_cast<float>(row + 1);  // row 0 从 -1 格开始，row 1 从 -2 格开始...
-        float startY = gridStartY - cellSize * queueOffset;
-        float endY = gridStartY + row * cellSize;
+        // 新水果从 newFruitStartY 统一下落到各自的目标行
+        float startY = newFruitStartY;
+        float endY = gridStartY + nf.row * cellSize;
         float curY = startY + (endY - startY) * progress;
         float offsetY = curY - endY;
         

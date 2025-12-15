@@ -1,6 +1,7 @@
 #include "ScoreFloatOverlay.h"
 #include <QPainter>
 #include <QFont>
+#include <QDebug>
 #include <cmath>
 
 ScoreFloatOverlay::ScoreFloatOverlay(QWidget* parent)
@@ -14,21 +15,62 @@ ScoreFloatOverlay::ScoreFloatOverlay(QWidget* parent)
     // 预分配空间
     floatingScores_.reserve(MAX_FLOATING_SCORES);
     
-    // 独立动画定时器（约 60 FPS）
+    // 动画定时器（约 60 FPS）
     animTimer_ = new QTimer(this);
     connect(animTimer_, &QTimer::timeout, this, &ScoreFloatOverlay::onAnimationTick);
     animTimer_->start(16);
+    
+    // 队列定时器（0.1 秒间隔）
+    queueTimer_ = new QTimer(this);
+    connect(queueTimer_, &QTimer::timeout, this, &ScoreFloatOverlay::onQueueTick);
+    queueTimer_->start(static_cast<int>(QUEUE_INTERVAL * 1000));
 }
 
 ScoreFloatOverlay::~ScoreFloatOverlay()
 {
 }
 
-void ScoreFloatOverlay::addScore(int score, int combo, float centerX, float centerY)
+void ScoreFloatOverlay::setMapInfo(int mapSize, float gridStartY, float cellSize)
+{
+    mapSize_ = mapSize;
+    gridStartY_ = gridStartY;
+    cellSize_ = cellSize;
+    // 计算显示中心（使用实际宽度）
+    displayCenterX_ = width() / 2.0f;
+    // 如果宽度为0（初始化阶段），使用预设值
+    if (displayCenterX_ <= 0) {
+        displayCenterX_ = 400.0f;
+    }
+}
+
+void ScoreFloatOverlay::addScore(int score, int combo)
 {
     if (score <= 0) return;
     
-    // 🔧 计算当前活跃的分数数量，用于堆叠偏移
+    // 添加到队列，由 onQueueTick 定时处理
+    pendingScores_.push({score, combo});
+}
+
+
+void ScoreFloatOverlay::clear()
+{
+    for (auto& fs : floatingScores_) {
+        fs.active = false;
+    }
+    while (!pendingScores_.empty()) {
+        pendingScores_.pop();
+    }
+}
+
+void ScoreFloatOverlay::onQueueTick()
+{
+    // 从队列中取出一个分数并显示
+    if (pendingScores_.empty()) return;
+    
+    PendingScore ps = pendingScores_.front();
+    pendingScores_.pop();
+    
+    // 计算当前活跃的分数数量，用于堆叠偏移
     int activeCount = 0;
     for (const auto& fs : floatingScores_) {
         if (fs.active) {
@@ -62,20 +104,15 @@ void ScoreFloatOverlay::addScore(int score, int combo, float centerX, float cent
     }
     
     if (slot >= 0) {
-        floatingScores_[slot].score = score;
-        floatingScores_[slot].combo = combo;
+        floatingScores_[slot].score = ps.score;
+        floatingScores_[slot].combo = ps.combo;
         floatingScores_[slot].progress = 0.0f;
-        floatingScores_[slot].centerX = centerX;
-        floatingScores_[slot].centerY = centerY;
-        floatingScores_[slot].stackIndex = activeCount;  // 🔧 设置堆叠索引
+        floatingScores_[slot].centerX = displayCenterX_;
+        // 固定在屏幕3/5位置显示，所有分数从同一位置生成
+        float gridWidth = mapSize_ * cellSize_;
+        floatingScores_[slot].centerY = gridStartY_ + gridWidth + 150.0f;
+        floatingScores_[slot].stackIndex = 0;  // 不需要堆叠偏移
         floatingScores_[slot].active = true;
-    }
-}
-
-void ScoreFloatOverlay::clear()
-{
-    for (auto& fs : floatingScores_) {
-        fs.active = false;
     }
 }
 
@@ -103,6 +140,13 @@ void ScoreFloatOverlay::onAnimationTick()
     }
 }
 
+void ScoreFloatOverlay::resizeEvent(QResizeEvent* event)
+{
+    QWidget::resizeEvent(event);
+    // 窗口大小改变时，重新计算显示中心X
+    displayCenterX_ = width() / 2.0f;
+}
+
 void ScoreFloatOverlay::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
@@ -117,8 +161,9 @@ void ScoreFloatOverlay::paintEvent(QPaintEvent* event)
     for (const auto& fs : floatingScores_) {
         if (!fs.active) continue;
         
-        // 计算上浮偏移 + 堆叠偏移（让多个分数形成一长串）
-        float offsetY = -FLOAT_DISTANCE * fs.progress - STACK_SPACING * fs.stackIndex;
+        // 向上浮动（Y越小越高）
+        // offsetY 应该从 0 减小到负值，使分数从底部上升到屏幕顶部
+        float offsetY = -FLOAT_DISTANCE * fs.progress;
         
         // 计算透明度（后半段淡出）
         float alpha = 1.0f;
@@ -144,11 +189,8 @@ void ScoreFloatOverlay::paintEvent(QPaintEvent* event)
         font.setBold(true);
         painter.setFont(font);
         
-        // 构建文本
+        // 构建文本：只显示分数
         QString text = QString("+%1").arg(fs.score);
-        if (fs.combo >= 2) {
-            text += QString(" x%1").arg(fs.combo);
-        }
         
         // 计算位置
         QFontMetrics fm(font);

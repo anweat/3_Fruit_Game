@@ -43,6 +43,7 @@ GameView::GameView(QWidget *parent)
     // 📌 创建独立的分数浮动覆盖层（作为子 Widget，避免 OpenGL 和 QPainter 混合）
     scoreOverlay_ = new ScoreFloatOverlay(this);
     scoreOverlay_->setGeometry(0, 0, width(), height());
+    scoreOverlay_->setMapInfo(MAP_SIZE, gridStartY_, cellSize_);
     scoreOverlay_->show();
     
     // 设置阶段完成回调
@@ -759,7 +760,8 @@ void GameView::beginEliminationStep(int roundIndex)
             centerX = std::max(minX, std::min(maxX, centerX));
             centerY = std::max(minY, std::min(maxY, centerY));
             
-            scoreOverlay_->addScore(round.scoreDelta, round.comboCount, centerX, centerY);
+            // 新的 API：不再传入位置，由 ScoreFloatOverlay 固定在地图顶部生成
+            scoreOverlay_->addScore(round.scoreDelta, round.comboCount);
         }
     }
 }
