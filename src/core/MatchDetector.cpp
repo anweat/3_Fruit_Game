@@ -3,11 +3,11 @@
 #include <map>
 
 MatchDetector::MatchDetector() {
-    // Ä¬ÈÏ¹¹Ôìº¯Êı
+    // é»˜è®¤æ„é€ å‡½æ•°
 }
 
 MatchDetector::~MatchDetector() {
-    // Ä¬ÈÏÎö¹¹º¯Êı
+    // é»˜è®¤ææ„å‡½æ•°
 }
 
 std::vector<MatchResult> MatchDetector::detectMatches(const std::vector<std::vector<Fruit>>& map) {
@@ -15,20 +15,20 @@ std::vector<MatchResult> MatchDetector::detectMatches(const std::vector<std::vec
     
     int mapSize = static_cast<int>(map.size());
     
-    // ±ê¼ÇÊı×é£¬¼ÇÂ¼ÄÄĞ©Î»ÖÃÒÑ±»Æ¥Åä
+    // æ ‡è®°æ•°ç»„ï¼Œè®°å½•å“ªäº›ä½ç½®å·²è¢«åŒ¹é…
     std::vector<std::vector<bool>> matched(mapSize, std::vector<bool>(mapSize, false));
     
     std::vector<MatchResult> results;
     
-    // ÏÈ¼ì²âºáÏòÆ¥Åä
+    // å…ˆæ£€æµ‹æ¨ªå‘åŒ¹é…
     auto horizontalMatches = detectHorizontalMatches(map, matched);
     results.insert(results.end(), horizontalMatches.begin(), horizontalMatches.end());
     
-    // ÔÙ¼ì²â×İÏòÆ¥Åä
+    // å†æ£€æµ‹çºµå‘åŒ¹é…
     auto verticalMatches = detectVerticalMatches(map, matched);
     results.insert(results.end(), verticalMatches.begin(), verticalMatches.end());
     
-    // ºÏ²¢½»²æÆ¥Åä£¨LĞÎ¡¢TĞÎ£©
+    // åˆå¹¶äº¤å‰åŒ¹é…ï¼ˆLå½¢ã€Tå½¢ï¼‰
     results = mergeIntersections(results);
     
     return results;
@@ -42,12 +42,12 @@ std::vector<MatchResult> MatchDetector::detectTypeMatchesAt(const std::vector<st
     if (map.empty()) return results;
     int mapSize = static_cast<int>(map.size());
     
-    // CANDY ÀàĞÍ²»²ÎÓëÆÕÍ¨ÈıÏûÆ¥Åä
+    // CANDY ç±»å‹ä¸å‚ä¸æ™®é€šä¸‰æ¶ˆåŒ¹é…
     if (row < 0 || row >= mapSize || col < 0 || col >= mapSize || !isMatchableFruit(type)) {
         return results;
     }
     
-    // ¼ì²âºáÏòÆ¥Åä
+    // æ£€æµ‹æ¨ªå‘åŒ¹é…
     int leftCount = 0, rightCount = 0;
     for (int c = col - 1; c >= 0 && isMatchableFruit(map[row][c].type) && map[row][c].type == type; c--) {
         leftCount++;
@@ -72,7 +72,7 @@ std::vector<MatchResult> MatchDetector::detectTypeMatchesAt(const std::vector<st
         results.push_back(match);
     }
     
-    // ¼ì²â×İÏòÆ¥Åä
+    // æ£€æµ‹çºµå‘åŒ¹é…
     int upCount = 0, downCount = 0;
     for (int r = row - 1; r >= 0 && isMatchableFruit(map[r][col].type) && map[r][col].type == type; r--) {
         upCount++;
@@ -109,22 +109,22 @@ bool MatchDetector::hasMatches(const std::vector<std::vector<Fruit>>& map) {
     return !detectMatches(map).empty();
 }
 
-//TODO: ÓÅ»¯ĞÔÄÜ£¬±ÜÃâÍêÈ«±éÀú£¬Í¨¹ıÎ¬»¤¿ÉÄÜ½»»»ÁĞ±íµÈ·½Ê½ÌáÉıĞ§ÂÊ
+//TODO: ä¼˜åŒ–æ€§èƒ½ï¼Œé¿å…å®Œå…¨éå†ï¼Œé€šè¿‡ç»´æŠ¤å¯èƒ½äº¤æ¢åˆ—è¡¨ç­‰æ–¹å¼æå‡æ•ˆç‡
 bool MatchDetector::hasPossibleMoves(const std::vector<std::vector<Fruit>>& map) {
     if (map.empty()) return false;
     int mapSize = static_cast<int>(map.size());
     
-    // ±éÀúËùÓĞÎ»ÖÃ£¬³¢ÊÔÓëÏàÁÚÎ»ÖÃ½»»»
+    // éå†æ‰€æœ‰ä½ç½®ï¼Œå°è¯•ä¸ç›¸é‚»ä½ç½®äº¤æ¢
     for (int row = 0; row < mapSize; row++) {
         for (int col = 0; col < mapSize; col++) {
-            // ³¢ÊÔÓëÓÒ±ß½»»»
+            // å°è¯•ä¸å³è¾¹äº¤æ¢
             if (col < mapSize - 1) {
                 if (wouldMatchAfterSwap(map, row, col, row, col + 1)) {
                     return true;
                 }
             }
             
-            // ³¢ÊÔÓëÏÂ±ß½»»»
+            // å°è¯•ä¸ä¸‹è¾¹äº¤æ¢
             if (row < mapSize - 1) {
                 if (wouldMatchAfterSwap(map, row, col, row + 1, col)) {
                     return true;
@@ -152,19 +152,19 @@ std::vector<MatchResult> MatchDetector::detectHorizontalMatches(
         for (int col = 1; col <= mapSize; col++) {
             FruitType nextType = (col < mapSize) ? map[row][col].type : FruitType::EMPTY;
             
-            // CANDY ÀàĞÍ²»²ÎÓëÆÕÍ¨ÈıÏûÆ¥Åä
+            // CANDY ç±»å‹ä¸å‚ä¸æ™®é€šä¸‰æ¶ˆåŒ¹é…
             if (col < mapSize && nextType == currentType && isMatchableFruit(currentType)) {
                 count++;
             } else {
-                // ¼ì²éÊÇ·ñĞÎ³ÉÆ¥Åä
+                // æ£€æŸ¥æ˜¯å¦å½¢æˆåŒ¹é…
                 if (count >= 3 && isMatchableFruit(currentType)) {
                     MatchResult match;
                     match.fruitType = currentType;
                     match.direction = MatchDirection::HORIZONTAL;
                     match.matchCount = count;
-                    match.specialPosition = {row, col - 1}; // Ä¬ÈÏ×îºóÒ»¸öÎ»ÖÃ
+                    match.specialPosition = {row, col - 1}; // é»˜è®¤æœ€åä¸€ä¸ªä½ç½®
                     
-                    // Ìí¼ÓËùÓĞÆ¥ÅäÎ»ÖÃ
+                    // æ·»åŠ æ‰€æœ‰åŒ¹é…ä½ç½®
                     for (int i = 0; i < count; i++) {
                         int c = col - 1 - i;
                         match.positions.push_back({row, c});
@@ -175,7 +175,7 @@ std::vector<MatchResult> MatchDetector::detectHorizontalMatches(
                     results.push_back(match);
                 }
                 
-                // ÖØÖÃ¼ÆÊı
+                // é‡ç½®è®¡æ•°
                 count = 1;
                 currentType = nextType;
             }
@@ -201,19 +201,19 @@ std::vector<MatchResult> MatchDetector::detectVerticalMatches(
         for (int row = 1; row <= mapSize; row++) {
             FruitType nextType = (row < mapSize) ? map[row][col].type : FruitType::EMPTY;
             
-            // CANDY ÀàĞÍ²»²ÎÓëÆÕÍ¨ÈıÏûÆ¥Åä
+            // CANDY ç±»å‹ä¸å‚ä¸æ™®é€šä¸‰æ¶ˆåŒ¹é…
             if (row < mapSize && nextType == currentType && isMatchableFruit(currentType)) {
                 count++;
             } else {
-                // ¼ì²éÊÇ·ñĞÎ³ÉÆ¥Åä
+                // æ£€æŸ¥æ˜¯å¦å½¢æˆåŒ¹é…
                 if (count >= 3 && isMatchableFruit(currentType)) {
                     MatchResult match;
                     match.fruitType = currentType;
                     match.direction = MatchDirection::VERTICAL;
                     match.matchCount = count;
-                    match.specialPosition = {row - 1, col}; // Ä¬ÈÏ×îºóÒ»¸öÎ»ÖÃ
+                    match.specialPosition = {row - 1, col}; // é»˜è®¤æœ€åä¸€ä¸ªä½ç½®
                     
-                    // Ìí¼ÓËùÓĞÆ¥ÅäÎ»ÖÃ
+                    // æ·»åŠ æ‰€æœ‰åŒ¹é…ä½ç½®
                     for (int i = 0; i < count; i++) {
                         int r = row - 1 - i;
                         match.positions.push_back({r, col});
@@ -224,7 +224,7 @@ std::vector<MatchResult> MatchDetector::detectVerticalMatches(
                     results.push_back(match);
                 }
                 
-                // ÖØÖÃ¼ÆÊı
+                // é‡ç½®è®¡æ•°
                 count = 1;
                 currentType = nextType;
             }
@@ -235,12 +235,12 @@ std::vector<MatchResult> MatchDetector::detectVerticalMatches(
 }
 
 std::vector<MatchResult> MatchDetector::mergeIntersections(std::vector<MatchResult>& results) {
-    // Èç¹û½á¹ûÊıÁ¿Ğ¡ÓÚ2£¬ÎŞĞèºÏ²¢
+    // å¦‚æœç»“æœæ•°é‡å°äº2ï¼Œæ— éœ€åˆå¹¶
     if (results.size() < 2) {
         return results;
     }
     
-    // Ê¹ÓÃset¼ÇÂ¼ÒÑºÏ²¢µÄË÷Òı
+    // ä½¿ç”¨setè®°å½•å·²åˆå¹¶çš„ç´¢å¼•
     std::set<int> merged;
     std::vector<MatchResult> finalResults;
     
@@ -252,13 +252,13 @@ std::vector<MatchResult> MatchDetector::mergeIntersections(std::vector<MatchResu
         MatchResult current = results[i];
         bool foundIntersection = false;
         
-        // ²éÕÒÓëµ±Ç°Æ¥ÅäÓĞ½»²æµÄÆäËûÆ¥Åä
+        // æŸ¥æ‰¾ä¸å½“å‰åŒ¹é…æœ‰äº¤å‰çš„å…¶ä»–åŒ¹é…
         for (size_t j = i + 1; j < results.size(); j++) {
             if (merged.count(j)) {
                 continue;
             }
             
-            // ¼ì²éÊÇ·ñÓĞ½»²æµã
+            // æ£€æŸ¥æ˜¯å¦æœ‰äº¤å‰ç‚¹
             bool hasIntersection = false;
             std::pair<int, int> intersectionPoint;
             
@@ -274,10 +274,10 @@ std::vector<MatchResult> MatchDetector::mergeIntersections(std::vector<MatchResu
             }
             
             if (hasIntersection) {
-                // ºÏ²¢Á½¸öÆ¥Åä
+                // åˆå¹¶ä¸¤ä¸ªåŒ¹é…
                 foundIntersection = true;
                 
-                // ºÏ²¢Î»ÖÃÁĞ±í£¨È¥ÖØ£©
+                // åˆå¹¶ä½ç½®åˆ—è¡¨ï¼ˆå»é‡ï¼‰
                 std::set<std::pair<int, int>> uniquePositions(
                     current.positions.begin(), current.positions.end());
                 uniquePositions.insert(results[j].positions.begin(), results[j].positions.end());
@@ -286,11 +286,11 @@ std::vector<MatchResult> MatchDetector::mergeIntersections(std::vector<MatchResu
                 current.matchCount = current.positions.size();
                 current.specialPosition = intersectionPoint;
                 
-                // ÅĞ¶ÏĞÎ³ÉµÄÊÇLĞÎ»¹ÊÇTĞÎ
+                // åˆ¤æ–­å½¢æˆçš„æ˜¯Lå½¢è¿˜æ˜¯Tå½¢
                 if (current.direction == MatchDirection::HORIZONTAL && 
                     results[j].direction == MatchDirection::VERTICAL) {
                     current.direction = MatchDirection::L_SHAPE;
-                    current.generateSpecial = SpecialType::DIAMOND; // LĞÎ»òTĞÎÉú³ÉÁâĞÎÕ¨µ¯
+                    current.generateSpecial = SpecialType::DIAMOND; // Lå½¢æˆ–Tå½¢ç”Ÿæˆè±å½¢ç‚¸å¼¹
                 } else if (current.direction == MatchDirection::VERTICAL && 
                            results[j].direction == MatchDirection::HORIZONTAL) {
                     current.direction = MatchDirection::T_SHAPE;
@@ -309,26 +309,26 @@ std::vector<MatchResult> MatchDetector::mergeIntersections(std::vector<MatchResu
 }
 
 SpecialType MatchDetector::determineSpecialType(int count, MatchDirection direction) {
-    // ¸ù¾İÏû³ıÊıÁ¿ºÍ·½ÏòÅĞ¶ÏÓ¦Éú³ÉµÄÌØÊâÔªËØÀàĞÍ
+    // æ ¹æ®æ¶ˆé™¤æ•°é‡å’Œæ–¹å‘åˆ¤æ–­åº”ç”Ÿæˆçš„ç‰¹æ®Šå…ƒç´ ç±»å‹
     if (count >= 5) {
-        // 5¸ö¼°ÒÔÉÏÖ±ÏßÏû³ı -> ÍòÄÜÕ¨µ¯£¨²Êºç¹û£©
+        // 5ä¸ªåŠä»¥ä¸Šç›´çº¿æ¶ˆé™¤ -> ä¸‡èƒ½ç‚¸å¼¹ï¼ˆå½©è™¹æœï¼‰
         return SpecialType::RAINBOW;
     } else if (count == 4) {
-        // 4¸öÏû³ı -> Ö±ÏßÕ¨µ¯
+        // 4ä¸ªæ¶ˆé™¤ -> ç›´çº¿ç‚¸å¼¹
         if (direction == MatchDirection::HORIZONTAL) {
-            return SpecialType::LINE_H; // ºáÏòÖ±ÏßÕ¨µ¯
+            return SpecialType::LINE_H; // æ¨ªå‘ç›´çº¿ç‚¸å¼¹
         } else if (direction == MatchDirection::VERTICAL) {
-            return SpecialType::LINE_V; // ×İÏòÖ±ÏßÕ¨µ¯
+            return SpecialType::LINE_V; // çºµå‘ç›´çº¿ç‚¸å¼¹
         }
     }
-    // LĞÎ»òTĞÎÔÚmergeIntersectionsÖĞ´¦Àí
+    // Lå½¢æˆ–Tå½¢åœ¨mergeIntersectionsä¸­å¤„ç†
     
     return SpecialType::NONE;
 }
 
 bool MatchDetector::wouldMatchAfterSwap(const std::vector<std::vector<Fruit>>& map,
                                         int row1, int col1, int row2, int col2) {
-    // ÓÅ»¯°æ£ºÖ»¼ì²â½»»»Î»ÖÃµÄË®¹ûÀàĞÍ,²»ÓÃÔÙ¸´ÖÆÕû¸öµØÍ¼
+    // ä¼˜åŒ–ç‰ˆï¼šåªæ£€æµ‹äº¤æ¢ä½ç½®çš„æ°´æœç±»å‹,ä¸ç”¨å†å¤åˆ¶æ•´ä¸ªåœ°å›¾
 
     FruitType type1 = map[row1][col1].type;
     FruitType type2 = map[row2][col2].type;
