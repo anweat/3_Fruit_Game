@@ -172,9 +172,30 @@ bool Database::createTables()
         return false;
     }
     
+    // 4. 创建比赛记录表（用于排行榜）
+    QString createCompetitionRecordsTable = R"(
+        CREATE TABLE IF NOT EXISTS competition_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_id TEXT NOT NULL,
+            player_name TEXT NOT NULL,
+            score INTEGER NOT NULL,
+            max_combo INTEGER DEFAULT 0,
+            duration_type TEXT NOT NULL,
+            played_at TEXT NOT NULL,
+            FOREIGN KEY (player_id) REFERENCES players(player_id)
+        )
+    )";
+    
+    if (!query.exec(createCompetitionRecordsTable)) {
+        qCritical() << "Failed to create competition_records table:" << query.lastError().text();
+        return false;
+    }
+    
     // 创建索引以提升查询性能
     query.exec("CREATE INDEX IF NOT EXISTS idx_achievement_player ON achievement_progress(player_id)");
     query.exec("CREATE INDEX IF NOT EXISTS idx_game_records_player ON game_records(player_id)");
+    query.exec("CREATE INDEX IF NOT EXISTS idx_competition_records_duration ON competition_records(duration_type)");
+    query.exec("CREATE INDEX IF NOT EXISTS idx_competition_records_score ON competition_records(score DESC)");
     
     return true;
 }

@@ -136,9 +136,9 @@ bool GameEngine::processGameCycle() {
     currentScore_ += totalScore;
     lastAnimation_.totalScoreDelta += totalScore;
     
-    // 更新最大连击
+    // 更新最大连击（使用循环处理器记录的最大连击，在resetCombo之前）
     sessionStats_.maxCombo = std::max(sessionStats_.maxCombo, 
-                                       scoreCalculator_.getComboCount());
+                                       cycleProcessor_.getLastMaxCombo());
     
     // 检查死局
     if (!hadElimination) {

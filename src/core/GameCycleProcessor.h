@@ -72,6 +72,12 @@ public:
                                 GameRound& outRound,
                                 int& outScore);
     
+    /**
+     * @brief 获取上一次循环达到的最大连击数
+     * @return 最大连击数（在resetCombo之前记录）
+     */
+    int getLastMaxCombo() const { return lastMaxCombo_; }
+    
 private:
     /**
      * @brief 处理特殊元素生成
@@ -99,6 +105,8 @@ private:
     AnimationRecorder& animRecorder_;
     FruitGenerator& fruitGenerator_;
     ScoreCalculator& scoreCalculator_;
+    
+    int lastMaxCombo_ = 0;  ///< 上一次循环达到的最大连击数
 };
 
 #endif // GAMECYCLEPROCESSOR_H

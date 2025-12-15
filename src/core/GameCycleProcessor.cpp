@@ -89,6 +89,9 @@ bool GameCycleProcessor::processMatchCycle(std::vector<std::vector<Fruit>>& map,
         scoreCalculator_.incrementCombo();
     }
     
+    // 记录本次循环达到的最大连击数（在重置前）
+    lastMaxCombo_ = scoreCalculator_.getComboCount();
+    
     // 如果有消除，重置连击
     if (hadElimination) {
         scoreCalculator_.resetCombo();

@@ -168,6 +168,8 @@ set(UI_SOURCES
     ui/LoginWidget.cpp
     ui/AchievementDialog.cpp
     ui/SettingsDialog.cpp
+    ui/CompetitionModeDialog.cpp
+    ui/LeaderboardDialog.cpp
     ui/views/GameView.cpp
     ui/views/RankView.cpp
     ui/views/AchievementView.cpp
@@ -179,6 +181,8 @@ set(UI_HEADERS
     ui/LoginWidget.h
     ui/AchievementDialog.h
     ui/SettingsDialog.h
+    ui/CompetitionModeDialog.h
+    ui/LeaderboardDialog.h
     ui/StyleLoader.h
     ui/views/GameView.h
     ui/views/RankView.h

@@ -39,6 +39,7 @@ Thumbs.db
 
 # Test outputs
 Testing/
+tests/
 
 # Compiler Help Files
 *.ps1

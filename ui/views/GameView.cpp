@@ -749,8 +749,15 @@ void GameView::beginEliminationStep(int roundIndex)
                 centerY = gridStartY_ + cellSize_;
             }
             
-            // 稍微往上偏移，避免遮挡消除动画
-            centerY -= cellSize_ * 0.5f;
+            // 🔧 限制悬浮字在地图范围内
+            float gridWidth = getMapSize() * cellSize_;
+            float minX = gridStartX_ + cellSize_;
+            float maxX = gridStartX_ + gridWidth - cellSize_;
+            float minY = gridStartY_ + cellSize_;
+            float maxY = gridStartY_ + gridWidth - cellSize_ * 2;
+            
+            centerX = std::max(minX, std::min(maxX, centerX));
+            centerY = std::max(minY, std::min(maxY, centerY));
             
             scoreOverlay_->addScore(round.scoreDelta, round.comboCount, centerX, centerY);
         }
@@ -818,11 +825,15 @@ void GameView::handlePhaseComplete(AnimPhase phase)
                     // 没有消除，回到空闲
                     animController_->reset();
                     snapshotManager_->clearSnapshot();
+                    // 🔧 强制刷新确保与引擎状态一致
+                    update();
                 }
             } else {
                 // 交换失败，回到空闲
                 animController_->reset();
                 snapshotManager_->clearSnapshot();
+                // 🔧 强制刷新确保与引擎状态一致
+                update();
             }
             break;
             
@@ -854,6 +865,8 @@ void GameView::handlePhaseComplete(AnimPhase phase)
                         // 全部完成，回到空闲
                         animController_->reset();
                         snapshotManager_->clearSnapshot();
+                        // 🔧 强制刷新确保与引擎状态一致（修复特殊元素边框不显示问题）
+                        update();
                     }
                 });
             }
@@ -863,6 +876,8 @@ void GameView::handlePhaseComplete(AnimPhase phase)
             // 重排动画完成，回到空闲
             animController_->reset();
             snapshotManager_->clearSnapshot();
+            // 🔧 强制刷新确保与引擎状态一致
+            update();
             break;
             
         default:
