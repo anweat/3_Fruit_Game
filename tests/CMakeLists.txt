@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
-# 查找Qt Test模块
-find_package(Qt6 REQUIRED COMPONENTS Test)
+# 查找Qt Test模块和Sql模块
+find_package(Qt6 REQUIRED COMPONENTS Test Sql)
 
 # 核心源文件 (测试需要链接这些实现)
 set(CORE_SOURCES_FOR_TEST
@@ -19,6 +19,18 @@ set(CORE_SOURCES_FOR_TEST
     ../src/props/Hammer.cpp
     ../src/props/MagicWand.cpp
     ../src/props/Clamp.cpp
+    ../src/data/Database.cpp
+    ../src/achievement/AchievementManager.cpp
+    ../src/achievement/detectors/AchievementDetectorManager.cpp
+    ../src/achievement/detectors/DetectorFactory.cpp
+    ../src/achievement/detectors/BeginnerAchievementDetector.cpp
+    ../src/achievement/detectors/ChallengeAchievementDetector.cpp
+    ../src/achievement/detectors/ComboAchievementDetector.cpp
+    ../src/achievement/detectors/MilestoneAchievementDetector.cpp
+    ../src/achievement/detectors/MultiMatchAchievementDetector.cpp
+    ../src/achievement/detectors/PropAchievementDetector.cpp
+    ../src/achievement/detectors/ScoreAchievementDetector.cpp
+    ../src/achievement/detectors/SpecialAchievementDetector.cpp
 )
 
 # 测试源文件
@@ -46,11 +58,15 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/src/core
         ${CMAKE_SOURCE_DIR}/src/props
+        ${CMAKE_SOURCE_DIR}/src/data
+        ${CMAKE_SOURCE_DIR}/src/achievement
+        ${CMAKE_SOURCE_DIR}/src/achievement/detectors
     )
     
     target_link_libraries(${TEST_NAME}
         Qt6::Test
         Qt6::Core
+        Qt6::Sql
     )
     
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
